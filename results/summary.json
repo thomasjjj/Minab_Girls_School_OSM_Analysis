@@ -1,0 +1,271 @@
+{
+  "project_title": "OpenStreetMap History Audit: Shajareh Tayyebeh Girls' School and Adjacent Military Mapping in Minab, Iran",
+  "strike_date": "2026-02-28T00:00:00+00:00",
+  "generated_at": "2026-03-11T10:49:20.775210+00:00",
+  "ways": {
+    "1485767423": {
+      "metadata": {
+        "label": "Suspected IRGC compound",
+        "short_label": "Military base",
+        "role": "compound",
+        "color": "#00BCD4"
+      },
+      "summary": {
+        "way_id": 1485767423,
+        "way_label": "Suspected IRGC compound",
+        "role": "compound",
+        "versions": 10,
+        "first_version": 1,
+        "latest_version": 10,
+        "first_timestamp": "2026-03-05T18:06:31+00:00",
+        "latest_timestamp": "2026-03-05T23:23:54+00:00",
+        "existed_pre_strike": false,
+        "geometry_change_count": 5,
+        "tag_change_count": 5,
+        "geometry_changes_pre_strike": 0,
+        "geometry_changes_post_strike": 5,
+        "tag_changes_pre_strike": 0,
+        "tag_changes_post_strike": 5,
+        "major_tag_events": "2026-03-05 18:06:31 UTC v1: + landuse=military || 2026-03-05 18:40:17 UTC v5: + name=مجتمع فرهنگی سیدالشهدا سپاه | + name:en=Seyyed al-Shohada Cultural Complex of the Revolutionary Guard || 2026-03-05 20:10:22 UTC v6: - name (was مجتمع فرهنگی سیدالشهدا سپاه) | - name:en (was Seyyed al-Shohada Cultural Complex of the Revolutionary Guard) || 2026-03-05 23:04:35 UTC v7: + military=base || 2026-03-05 23:22:48 UTC v9: + name=سید الشهدا-عاصف | + name:en=Sayyid al-Shuhada || 2026-03-05 23:23:54 UTC v10: ~ name:en: Sayyid al-Shuhada -> Sayyid al-Shuhada-Asif",
+        "first_perimeter_m": 1166.1605689603634,
+        "latest_perimeter_m": 1166.5228173493076,
+        "delta_perimeter_m": 0.362248388944181,
+        "first_version_version": 1,
+        "first_version_timestamp": "2026-03-05T18:06:31+00:00",
+        "first_version_perimeter_m": 1166.1605689603634,
+        "last_pre_strike_version": null,
+        "last_pre_strike_timestamp": null,
+        "last_pre_strike_perimeter_m": null,
+        "first_post_strike_version": 1,
+        "first_post_strike_timestamp": "2026-03-05T18:06:31+00:00",
+        "first_post_strike_perimeter_m": 1166.1605689603634
+      },
+      "milestones": {
+        "first_version": {
+          "version": 1,
+          "timestamp": "2026-03-05T18:06:31+00:00",
+          "perimeter_m": 1166.1605689603634,
+          "tags": "landuse=military",
+          "tag_changes": "+ landuse=military"
+        },
+        "last_pre_strike": null,
+        "first_post_strike": {
+          "version": 1,
+          "timestamp": "2026-03-05T18:06:31+00:00",
+          "perimeter_m": 1166.1605689603634,
+          "tags": "landuse=military",
+          "tag_changes": "+ landuse=military"
+        },
+        "latest": {
+          "version": 10,
+          "timestamp": "2026-03-05T23:23:54+00:00",
+          "perimeter_m": 1166.5228173493076,
+          "tags": "landuse=military; military=base; name=سید الشهدا-عاصف; name:en=Sayyid al-Shuhada-Asif",
+          "tag_changes": "~ name:en: Sayyid al-Shuhada -> Sayyid al-Shuhada-Asif"
+        }
+      }
+    },
+    "1484791929": {
+      "metadata": {
+        "label": "Shajareh Tayyebeh girls' school",
+        "short_label": "School",
+        "role": "school",
+        "color": "#1976D2"
+      },
+      "summary": {
+        "way_id": 1484791929,
+        "way_label": "Shajareh Tayyebeh girls' school",
+        "role": "school",
+        "versions": 4,
+        "first_version": 1,
+        "latest_version": 4,
+        "first_timestamp": "2026-03-03T03:03:10+00:00",
+        "latest_timestamp": "2026-03-05T22:09:35+00:00",
+        "existed_pre_strike": false,
+        "geometry_change_count": 2,
+        "tag_change_count": 1,
+        "geometry_changes_pre_strike": 0,
+        "geometry_changes_post_strike": 2,
+        "tag_changes_pre_strike": 0,
+        "tag_changes_post_strike": 1,
+        "major_tag_events": "2026-03-03 03:03:10 UTC v1: + amenity=school | + education=school | + name=Shajareh Tayyebeh girls' elementary school || 2026-03-05 22:09:35 UTC v4: + name:ar=مدرسة شجرة طيبة الابتدائية للبنات",
+        "first_perimeter_m": 445.16682141535046,
+        "latest_perimeter_m": 436.1419864588573,
+        "delta_perimeter_m": -9.02483495649318,
+        "first_version_version": 1,
+        "first_version_timestamp": "2026-03-03T03:03:10+00:00",
+        "first_version_perimeter_m": 445.16682141535046,
+        "last_pre_strike_version": null,
+        "last_pre_strike_timestamp": null,
+        "last_pre_strike_perimeter_m": null,
+        "first_post_strike_version": 1,
+        "first_post_strike_timestamp": "2026-03-03T03:03:10+00:00",
+        "first_post_strike_perimeter_m": 445.16682141535046
+      },
+      "milestones": {
+        "first_version": {
+          "version": 1,
+          "timestamp": "2026-03-03T03:03:10+00:00",
+          "perimeter_m": 445.16682141535046,
+          "tags": "amenity=school; education=school; name=Shajareh Tayyebeh girls' elementary school",
+          "tag_changes": "+ amenity=school | + education=school | + name=Shajareh Tayyebeh girls' elementary school"
+        },
+        "last_pre_strike": null,
+        "first_post_strike": {
+          "version": 1,
+          "timestamp": "2026-03-03T03:03:10+00:00",
+          "perimeter_m": 445.16682141535046,
+          "tags": "amenity=school; education=school; name=Shajareh Tayyebeh girls' elementary school",
+          "tag_changes": "+ amenity=school | + education=school | + name=Shajareh Tayyebeh girls' elementary school"
+        },
+        "latest": {
+          "version": 4,
+          "timestamp": "2026-03-05T22:09:35+00:00",
+          "perimeter_m": 436.1419864588573,
+          "tags": "amenity=school; education=school; name=Shajareh Tayyebeh girls' elementary school; name:ar=مدرسة شجرة طيبة الابتدائية للبنات",
+          "tag_changes": "+ name:ar=مدرسة شجرة طيبة الابتدائية للبنات"
+        }
+      }
+    },
+    "942760673": {
+      "metadata": {
+        "label": "Sayyid al-Shuhada-Asif barracks area",
+        "short_label": "Barracks",
+        "role": "barracks_area",
+        "color": "#FFA726"
+      },
+      "summary": {
+        "way_id": 942760673,
+        "way_label": "Sayyid al-Shuhada-Asif barracks area",
+        "role": "barracks_area",
+        "versions": 13,
+        "first_version": 1,
+        "latest_version": 13,
+        "first_timestamp": "2021-05-14T02:59:17+00:00",
+        "latest_timestamp": "2026-03-07T22:56:51+00:00",
+        "existed_pre_strike": true,
+        "geometry_change_count": 5,
+        "tag_change_count": 7,
+        "geometry_changes_pre_strike": 0,
+        "geometry_changes_post_strike": 5,
+        "tag_changes_pre_strike": 1,
+        "tag_changes_post_strike": 6,
+        "major_tag_events": "2021-05-14 02:59:17 UTC v1: + landuse=military | + military=range | + name=پادگان تیپ عاصف || 2021-05-19 02:17:22 UTC v2: ~ name: پادگان تیپ عاصف -> پادگان سید الشهدا-عاصف || 2026-03-03 03:07:42 UTC v4: - military (was range) || 2026-03-03 17:09:06 UTC v5: - name (was پادگان سید الشهدا-عاصف) || 2026-03-04 09:22:09 UTC v6: + name=پادگان سید الشهدا-عاصف || 2026-03-05 18:14:24 UTC v8: + name:en=Sayyid al-Shohada-Asif Barracks",
+        "first_perimeter_m": 1251.7230493326272,
+        "latest_perimeter_m": 1044.8045436008556,
+        "delta_perimeter_m": -206.91850573177157,
+        "first_version_version": 1,
+        "first_version_timestamp": "2021-05-14T02:59:17+00:00",
+        "first_version_perimeter_m": 1251.7230493326272,
+        "last_pre_strike_version": 2,
+        "last_pre_strike_timestamp": "2021-05-19T02:17:22+00:00",
+        "last_pre_strike_perimeter_m": 1251.7230493326272,
+        "first_post_strike_version": 3,
+        "first_post_strike_timestamp": "2026-03-03T03:03:10+00:00",
+        "first_post_strike_perimeter_m": 1049.2711800388092
+      },
+      "milestones": {
+        "first_version": {
+          "version": 1,
+          "timestamp": "2021-05-14T02:59:17+00:00",
+          "perimeter_m": 1251.7230493326272,
+          "tags": "landuse=military; military=range; name=پادگان تیپ عاصف",
+          "tag_changes": "+ landuse=military | + military=range | + name=پادگان تیپ عاصف"
+        },
+        "last_pre_strike": {
+          "version": 2,
+          "timestamp": "2021-05-19T02:17:22+00:00",
+          "perimeter_m": 1251.7230493326272,
+          "tags": "landuse=military; military=range; name=پادگان سید الشهدا-عاصف",
+          "tag_changes": "~ name: پادگان تیپ عاصف -> پادگان سید الشهدا-عاصف"
+        },
+        "first_post_strike": {
+          "version": 3,
+          "timestamp": "2026-03-03T03:03:10+00:00",
+          "perimeter_m": 1049.2711800388092,
+          "tags": "landuse=military; military=range; name=پادگان سید الشهدا-عاصف",
+          "tag_changes": "no tag changes"
+        },
+        "latest": {
+          "version": 13,
+          "timestamp": "2026-03-07T22:56:51+00:00",
+          "perimeter_m": 1044.8045436008556,
+          "tags": "landuse=military; name=پادگان سید الشهدا-عاصف; name:ar=ثكنة سيد الشهداء آصف; name:en=Sayyid al-Shuhada-Asif Barracks",
+          "tag_changes": "no tag changes"
+        }
+      }
+    }
+  },
+  "key_findings": [
+    "The school polygon first appears on 2026-03-03 03:03:10 UTC, after the strike divider of 2026-02-28 00:00:00 UTC.",
+    "The smaller suspected compound polygon also appears only after the strike, first at 2026-03-05 18:06:31 UTC.",
+    "The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.",
+    "Overall OSM conflation-risk rating from these indicators: High (86/100).",
+    "Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026."
+  ],
+  "conflation_assessment": {
+    "score": 86,
+    "overall_rating": "High",
+    "indicators": [
+      {
+        "label": "Separate pre-strike school polygon",
+        "status": "risk",
+        "detail": "No separate school way is present before the strike date in this OSM history."
+      },
+      {
+        "label": "Separate pre-strike compound polygon",
+        "status": "risk",
+        "detail": "No smaller adjacent compound way is present before the strike date."
+      },
+      {
+        "label": "Broader pre-strike military-area polygon",
+        "status": "ambiguous",
+        "detail": "A broader military-tagged barracks area is present before the strike date."
+      },
+      {
+        "label": "Post-strike clarification visible",
+        "status": "ambiguous",
+        "detail": "The school or smaller compound polygons appear only after the strike, indicating later clarification of the OSM record."
+      }
+    ],
+    "latest_school_compound_distance_m": 0.0,
+    "latest_school_barracks_distance_m": 0.0
+  },
+  "generated_files": [
+    "README.md",
+    "results/combined_latest_overlay.png",
+    "results/combined_timeline.png",
+    "results/combined_way_history_analysis.csv",
+    "results/conflation_risk.png",
+    "results/milestone_state_comparison.csv",
+    "results/perimeter_comparison.png",
+    "results/results.txt",
+    "results/state_maps/first_post_strike_combined.png",
+    "results/state_maps/first_post_strike_way_1484791929.png",
+    "results/state_maps/first_post_strike_way_1485767423.png",
+    "results/state_maps/first_post_strike_way_942760673.png",
+    "results/state_maps/first_version_combined.png",
+    "results/state_maps/first_version_way_1484791929.png",
+    "results/state_maps/first_version_way_1485767423.png",
+    "results/state_maps/first_version_way_942760673.png",
+    "results/state_maps/last_pre_strike_combined.png",
+    "results/state_maps/last_pre_strike_way_1484791929.png",
+    "results/state_maps/last_pre_strike_way_1485767423.png",
+    "results/state_maps/last_pre_strike_way_942760673.png",
+    "results/state_maps/latest_combined.png",
+    "results/state_maps/latest_way_1484791929.png",
+    "results/state_maps/latest_way_1485767423.png",
+    "results/state_maps/latest_way_942760673.png",
+    "results/summary.json",
+    "results/way_1484791929_geometry_overlay.png",
+    "results/way_1484791929_history_analysis.csv",
+    "results/way_1484791929_timeline.png",
+    "results/way_1485767423_geometry_overlay.png",
+    "results/way_1485767423_history_analysis.csv",
+    "results/way_1485767423_timeline.png",
+    "results/way_942760673_geometry_overlay.png",
+    "results/way_942760673_history_analysis.csv",
+    "results/way_942760673_timeline.png",
+    "results/way_history_summary.csv"
+  ]
+}
