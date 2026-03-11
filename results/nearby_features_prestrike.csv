@@ -1,19 +1,12 @@
 element_type,osm_id,name,lat,lon,distance_m,cde_category,cde_label,tags_str,within_50m,within_100m,within_250m,within_500m
-node,3678209486,,27.1062164,57.0843533,300.0,unknown,Unknown / unclassified,,False,False,False,True
-node,3678209495,,27.1074937,57.0826661,239.8,unknown,Unknown / unclassified,,False,False,True,True
-node,3678209517,,27.1090951,57.0831108,138.2,unknown,Unknown / unclassified,,False,False,True,True
-node,3678209522,,27.1100868,57.082217,260.3,unknown,Unknown / unclassified,,False,False,False,True
 node,3678209524,,27.1102368,57.0883144,406.1,unknown,Unknown / unclassified,,False,False,False,True
-node,3678209526,,27.1106317,57.0815069,351.9,unknown,Unknown / unclassified,,False,False,False,True
-node,3678209530,,27.1108932,57.0806989,435.3,unknown,Unknown / unclassified,,False,False,False,True
-node,3678209532,,27.111449,57.0811152,437.4,unknown,Unknown / unclassified,,False,False,False,True
 node,3678209533,,27.1116916,57.0867106,379.2,unknown,Unknown / unclassified,,False,False,False,True
 node,3858435060,,27.1060931,57.0868128,388.6,unknown,Unknown / unclassified,,False,False,False,True
 node,3858435061,,27.1077163,57.0861874,214.1,unknown,Unknown / unclassified,,False,False,True,True
 node,5667438512,,27.1078125,57.0862797,215.1,unknown,Unknown / unclassified,,False,False,True,True
 node,5667438516,,27.1072861,57.0857749,220.9,unknown,Unknown / unclassified,,False,False,True,True
 node,5667441638,,27.1071769,57.0862179,257.7,unknown,Unknown / unclassified,,False,False,False,True
-node,5667441643,,27.1070585,57.0864409,282.3,unknown,Unknown / unclassified,,False,False,False,True
+node,5667441643,,27.1070606,57.0864549,283.1,unknown,Unknown / unclassified,,False,False,False,True
 node,5667441660,,27.1073389,57.0860305,231.9,unknown,Unknown / unclassified,,False,False,True,True
 node,5667441670,,27.1076312,57.0862825,227.4,unknown,Unknown / unclassified,,False,False,True,True
 node,5667441720,,27.1074334,57.0863321,245.4,unknown,Unknown / unclassified,,False,False,True,True
@@ -29,32 +22,30 @@ node,5667451628,,27.1070407,57.0825487,283.3,unknown,Unknown / unclassified,,Fal
 node,5667451629,,27.1068758,57.0810368,410.1,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451631,,27.1065407,57.0802826,493.0,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451633,,27.1080516,57.080795,378.2,unknown,Unknown / unclassified,,False,False,False,True
-node,5667451634,,27.1062247,57.0833158,320.6,unknown,Unknown / unclassified,,False,False,False,True
+node,5667451634,,27.1062868,57.0832782,315.6,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451635,,27.1056711,57.084021,363.3,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451639,,27.1058878,57.0822967,400.3,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451640,,27.1070461,57.0800053,490.1,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451650,,27.1061991,57.0825592,357.1,unknown,Unknown / unclassified,,False,False,False,True
-node,5667451651,,27.1080833,57.0797763,475.7,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451654,,27.1058928,57.0837386,343.8,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451656,,27.1057844,57.0822096,414.6,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451657,,27.1066847,57.0820975,342.7,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451658,,27.1060828,57.0819445,403.1,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451662,,27.106498,57.0829677,307.8,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451663,,27.1063706,57.0822139,361.4,unknown,Unknown / unclassified,,False,False,False,True
-node,5667451664,,27.1073938,57.081285,359.4,unknown,Unknown / unclassified,,False,False,False,True
+node,5667451664,,27.1074706,57.0812727,356.6,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451666,,27.1069738,57.0818842,336.2,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451667,,27.1061126,57.0844446,311.3,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451669,,27.1072596,57.0829326,239.9,unknown,Unknown / unclassified,,False,False,True,True
 node,5667451671,,27.1056408,57.0814739,470.6,unknown,Unknown / unclassified,,False,False,False,True
-node,5667451674,,27.1071917,57.0808312,409.7,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451676,,27.106689,57.0836848,259.7,unknown,Unknown / unclassified,,False,False,False,True
 node,5667451679,,27.1055437,57.0826339,417.2,unknown,Unknown / unclassified,,False,False,False,True
 node,5667461122,,27.1104897,57.0806813,416.0,unknown,Unknown / unclassified,,False,False,False,True
 node,5667461129,,27.1103622,57.0803601,439.6,unknown,Unknown / unclassified,,False,False,False,True
 node,5667461130,,27.1090413,57.0801651,428.5,unknown,Unknown / unclassified,,False,False,False,True
-node,5667461131,,27.109374,57.0796444,482.5,unknown,Unknown / unclassified,,False,False,False,True
+node,5667461131,,27.1093865,57.0795778,489.2,unknown,Unknown / unclassified,,False,False,False,True
 node,5667461134,,27.1079801,57.0821421,254.5,unknown,Unknown / unclassified,,False,False,False,True
-node,5667461139,,27.1084754,57.0796548,481.2,unknown,Unknown / unclassified,,False,False,False,True
+node,5667461139,,27.1084629,57.0795917,487.5,unknown,Unknown / unclassified,,False,False,False,True
 node,5667461143,,27.1087002,57.0811578,330.8,unknown,Unknown / unclassified,,False,False,False,True
 node,5667461145,,27.1085828,57.0802883,417.6,unknown,Unknown / unclassified,,False,False,False,True
 node,5667461146,,27.1094857,57.0812959,322.7,unknown,Unknown / unclassified,,False,False,False,True
@@ -76,8 +67,9 @@ node,6154875344,,27.1067361,57.0807224,444.6,unknown,Unknown / unclassified,,Fal
 node,6154875345,,27.1062288,57.0810449,453.2,unknown,Unknown / unclassified,,False,False,False,True
 node,6154875346,,27.1061285,57.0810181,462.5,unknown,Unknown / unclassified,,False,False,False,True
 node,6154875347,,27.1055605,57.0813125,487.7,unknown,Unknown / unclassified,,False,False,False,True
-node,6669339081,,27.1092683,57.0876756,317.7,unknown,Unknown / unclassified,,False,False,False,True
-node,6669339082,,27.1093552,57.0875557,307.3,unknown,Unknown / unclassified,,False,False,False,True
+node,6427495802,محله پریتقی,27.1075009,57.0799827,473.0,unknown,Unknown / unclassified,name=محله پریتقی; place=suburb,False,False,False,True
+node,6669339081,,27.1092683,57.0876756,317.7,unknown,Unknown / unclassified,junction=yes,False,False,False,True
+node,6669339082,,27.1093552,57.0875557,307.3,unknown,Unknown / unclassified,junction=yes,False,False,False,True
 node,6669339083,,27.1069671,57.085469,236.9,unknown,Unknown / unclassified,,False,False,True,True
 node,6669339084,,27.1070575,57.0853512,223.0,unknown,Unknown / unclassified,,False,False,True,True
 node,8198231368,,27.1066406,57.0864353,317.5,unknown,Unknown / unclassified,,False,False,False,True
@@ -96,14 +88,14 @@ node,8730076023,,27.1088714,57.0879189,339.3,unknown,Unknown / unclassified,,Fal
 node,8730076024,,27.1087305,57.0879779,345.7,unknown,Unknown / unclassified,,False,False,False,True
 node,8730076025,,27.1086469,57.0877151,320.4,unknown,Unknown / unclassified,,False,False,False,True
 node,8730076026,,27.1087806,57.0876507,313.0,unknown,Unknown / unclassified,,False,False,False,True
-node,8730076027,مرکز تحقیقات کشاورزی شهرستان میناب,27.1091388,57.08845,392.6,government_institutional,Government / institutional,name=مرکز تحقیقات کشاورزی شهرستان میناب; office=government,False,False,False,True
+node,8730076027,مرکز تحقیقات کشاورزی شهرستان میناب,27.1095972,57.0881925,374.2,government_institutional,Government / institutional,name=مرکز تحقیقات کشاورزی شهرستان میناب; office=government,False,False,False,True
 node,8730076028,,27.1087209,57.0873583,284.6,unknown,Unknown / unclassified,amenity=atm; currency:IRR=yes; network=عابر بانک کشاورزی; operator=عابر بانک کشاورزی,False,False,False,True
-node,8730076029,,27.1091887,57.0872413,273.9,unknown,Unknown / unclassified,,False,False,False,True
-node,8730076030,,27.1089212,57.0869757,245.9,unknown,Unknown / unclassified,,False,False,True,True
+node,8730076029,,27.1092781,57.0871549,266.8,unknown,Unknown / unclassified,,False,False,False,True
+node,8730076030,,27.1090023,57.086894,238.0,unknown,Unknown / unclassified,,False,False,True,True
 node,8730076031,,27.1095898,57.086104,176.5,unknown,Unknown / unclassified,,False,False,True,True
 node,8730076032,,27.1098596,57.0863776,214.4,unknown,Unknown / unclassified,,False,False,True,True
-node,8730076033,آهن آلات زارع,27.1108482,57.0887209,470.8,civilian_general,Civilian general,name=آهن آلات زارع; shop=yes,False,False,False,True
-node,8730076034,اداره آب و فاضلاب روستایی,27.1096258,57.0876051,318.3,government_institutional,Government / institutional,name=اداره آب و فاضلاب روستایی; office=government,False,False,False,True
+node,8730076033,آهن آلات زارع,27.1106434,57.0885634,446.7,civilian_general,Civilian general,name=آهن آلات زارع; shop=yes,False,False,False,True
+node,8730076034,اداره آب و فاضلاب,27.1096258,57.0876051,318.3,government_institutional,Government / institutional,name=اداره آب و فاضلاب; office=government,False,False,False,True
 node,8730085550,,27.1062982,57.0844223,290.7,unknown,Unknown / unclassified,,False,False,False,True
 node,8730085551,,27.1075302,57.0828103,226.4,unknown,Unknown / unclassified,,False,False,True,True
 node,8730085552,,27.1091514,57.0843821,28.8,unknown,Unknown / unclassified,,True,True,True,True
@@ -114,39 +106,309 @@ node,8744297895,,27.1076858,57.0862399,220.3,unknown,Unknown / unclassified,,Fal
 node,8744297896,,27.1074024,57.0859729,222.8,unknown,Unknown / unclassified,,False,False,True,True
 node,8744297897,,27.1073689,57.0861611,238.2,unknown,Unknown / unclassified,,False,False,True,True
 node,8744297898,,27.107439,57.0862844,241.5,unknown,Unknown / unclassified,,False,False,True,True
-way,183918804,بلوار رسالت,27.1087913,57.0868626,235.1,infrastructure_access,Infrastructure / access,highway=primary; name=بلوار رسالت; oneway=yes; ref=91,False,False,True,True
-way,183918809,بلوار رسالت,27.108556,57.0871543,266.5,infrastructure_access,Infrastructure / access,highway=primary; name=بلوار رسالت; oneway=yes; ref=91,False,False,False,True
-way,363654756,میناب,27.1320493,57.0785367,2639.5,civilian_general,Civilian general,landuse=residential; name=میناب,False,False,False,False
-way,363654757,مغیری,27.1057668,57.0768801,830.6,civilian_general,Civilian general,landuse=residential; name=مغیری,False,False,False,False
-way,594311559,دانش,27.0996072,57.0878913,1087.9,infrastructure_access,Infrastructure / access,highway=tertiary; name=دانش; oneway=yes,False,False,False,False
-way,594312765,,27.1064687,57.0817325,385.2,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
-way,594312771,,27.1066861,57.0832711,275.3,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+node,8754412628,,27.1061509,57.0845633,307.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8754412629,,27.1075476,57.0827465,229.8,unknown,Unknown / unclassified,,False,False,True,True
+node,8754412630,,27.1079186,57.0830808,178.0,unknown,Unknown / unclassified,,False,False,True,True
+node,8754412631,,27.1089218,57.0832825,119.7,unknown,Unknown / unclassified,,False,False,True,True
+node,8754412632,,27.1096192,57.0840505,90.0,unknown,Unknown / unclassified,,False,True,True,True
+node,8754412633,,27.110118,57.0835109,165.6,unknown,Unknown / unclassified,,False,False,True,True
+node,8754412634,,27.1099195,57.0832184,168.6,unknown,Unknown / unclassified,,False,False,True,True
+node,8754412635,,27.1101919,57.0829245,210.5,unknown,Unknown / unclassified,,False,False,True,True
+node,8754412636,,27.109864,57.0824938,224.3,unknown,Unknown / unclassified,,False,False,True,True
+node,8754412637,,27.1102612,57.082141,276.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8754412638,,27.1104829,57.0819075,309.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8754412639,,27.1106584,57.0811188,386.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8754412640,,27.1113882,57.0812744,421.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8754412641,,27.1116145,57.0810254,456.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8754412642,,27.1117346,57.0812537,448.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8754412643,,27.1119794,57.0810617,481.3,unknown,Unknown / unclassified,,False,False,False,True
+node,8754412658,,27.1051731,57.0836354,424.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8766209010,,27.1080138,57.0808733,371.8,unknown,Unknown / unclassified,,False,False,False,True
+node,8766209011,,27.1082322,57.0809646,357.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8766209012,,27.1084737,57.080882,360.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8780364705,,27.1097545,57.0883013,388.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8787174499,,27.1089524,57.0873816,286.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8787174500,,27.107677,57.0880239,375.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8787174504,,27.1088937,57.0874922,297.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8787174505,,27.1088026,57.0875432,302.3,unknown,Unknown / unclassified,,False,False,False,True
+node,8787174506,,27.1087075,57.087401,288.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8787174507,,27.1087027,57.087334,282.3,unknown,Unknown / unclassified,,False,False,False,True
+node,8787174508,,27.1087386,57.0873072,279.4,infrastructure_access,Infrastructure / access,access=no; barrier=gate; bicycle=no; foot=yes; height=3; horse=no; motor_vehicle=yes; wheelchair=yes,False,False,False,True
+node,8787265701,,27.1101278,57.0882971,400.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8787265702,,27.1117068,57.0865923,374.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960964,,27.108074,57.0797609,477.4,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960965,,27.1080125,57.0800098,454.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960966,,27.1084288,57.0799762,450.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960967,,27.1079946,57.0802079,436.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960968,,27.1097155,57.0798574,467.3,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960969,,27.1094116,57.0801156,436.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960981,,27.1096383,57.0812025,335.4,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960982,,27.1095763,57.0809876,354.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960983,,27.1095794,57.0808438,368.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960984,,27.1096356,57.0807246,381.4,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960985,,27.1097667,57.0806334,393.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960986,,27.1097979,57.0806089,396.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960987,,27.1097293,57.0803564,419.3,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960988,,27.1096856,57.0802196,431.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960989,,27.1083944,57.0819093,262.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960990,,27.1085523,57.0825167,199.5,unknown,Unknown / unclassified,,False,False,True,True
+node,8792960991,,27.1090425,57.0824045,207.1,unknown,Unknown / unclassified,,False,False,True,True
+node,8792960992,,27.1076309,57.0818356,299.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8792960993,,27.1072652,57.0822651,286.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8792963940,,27.1107462,57.0890603,496.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8792963941,,27.1098576,57.0882055,382.4,unknown,Unknown / unclassified,,False,False,False,True
+node,8792963942,,27.1092467,57.0876155,311.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8792963943,,27.1082215,57.0866331,225.4,unknown,Unknown / unclassified,,False,False,True,True
+node,8792963944,,27.107591,57.0860255,211.2,unknown,Unknown / unclassified,,False,False,True,True
+node,8792963945,,27.1072295,57.0862942,258.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8792963946,,27.1064006,57.0865934,348.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8792963947,,27.1054276,57.0869354,456.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404337,,27.1068168,57.0860098,277.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404388,,27.1072732,57.0870243,309.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404389,,27.1082454,57.0877556,331.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404390,,27.1083898,57.0881741,369.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404391,,27.108921,57.0879453,341.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404450,,27.1098099,57.0881949,379.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404451,,27.1088257,57.0886616,412.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404452,,27.1081164,57.0890072,455.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404453,,27.1076451,57.0892462,491.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404484,,27.1070948,57.0887678,469.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404485,,27.1070531,57.0886501,460.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404486,,27.1070269,57.0886618,462.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404487,,27.1069754,57.0885165,452.8,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404488,,27.1068476,57.0885737,464.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404489,,27.1069409,57.0888367,482.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404490,,27.1076057,57.089317,499.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404491,,27.1075212,57.0891234,483.8,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404494,,27.1091268,57.0884899,396.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404495,,27.1090748,57.0883615,383.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404496,,27.1089896,57.0884036,387.3,unknown,Unknown / unclassified,,False,False,False,True
+node,8810404497,,27.1090499,57.0885343,400.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8810994209,لوله و اتصالات ناظری,27.1109288,57.088854,486.6,civilian_general,Civilian general,name=لوله و اتصالات ناظری; shop=yes,False,False,False,True
+node,8810994213,تعمیرگاه جنوب,27.1110228,57.0889323,498.3,civilian_general,Civilian general,name=تعمیرگاه جنوب; shop=car_repair,False,False,False,True
+node,8810994214,آهن آلات شیخ آبادی,27.1101042,57.0880897,380.1,civilian_general,Civilian general,name=آهن آلات شیخ آبادی; shop=yes,False,False,False,True
+node,8810994215,اداره شیلات میناب,27.1099519,57.0879176,358.3,government_institutional,Government / institutional,name=اداره شیلات میناب; office=government,False,False,False,True
+node,8810994216,کلینیک کشاورزی مروارید,27.1091846,57.0871874,268.6,civilian_general,Civilian general,name=کلینیک کشاورزی مروارید; shop=agrarian,False,False,False,True
+node,8819164501,,27.1068099,57.088479,458.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8819164502,,27.1066478,57.0880339,431.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8819164504,,27.108558,57.0886353,412.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8819164505,,27.106442,57.0886909,498.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174917,,27.107029,57.0888403,478.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174918,,27.107415,57.0886912,447.8,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174920,,27.1074163,57.0874196,334.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174921,,27.1088095,57.0870322,251.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174922,,27.1097185,57.0858239,159.5,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174923,,27.1103627,57.0849945,168.9,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174924,,27.1097113,57.0841855,94.0,unknown,Unknown / unclassified,,False,True,True,True
+node,8819174925,,27.1090321,57.0834356,105.4,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174926,,27.109637,57.0841035,89.3,unknown,Unknown / unclassified,,False,True,True,True
+node,8819174927,,27.1101669,57.0835243,169.3,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174928,,27.1095683,57.0827841,184.1,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174929,,27.1101337,57.0822144,263.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174930,,27.1101856,57.0829686,206.9,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174931,,27.1098294,57.0825211,220.1,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174932,,27.1103332,57.0827935,230.7,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174933,,27.1102149,57.0829339,211.6,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174934,,27.1098604,57.0824898,224.5,unknown,Unknown / unclassified,,False,False,True,True
+node,8819174935,,27.1103671,57.0819646,297.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174936,,27.110231,57.0816186,320.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174937,,27.1100281,57.0814416,326.4,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174938,,27.1098108,57.081404,321.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174939,,27.1100729,57.0822756,254.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174940,,27.1098514,57.0819485,272.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174941,,27.1095513,57.0812557,328.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174942,,27.1093587,57.0813673,313.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174943,,27.1096724,57.0820477,256.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174944,,27.109843,57.0819291,274.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174945,,27.1103805,57.0807481,404.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174946,,27.1105414,57.0812189,371.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174947,,27.1100765,57.0814838,324.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174948,,27.1112682,57.0802047,498.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174951,,27.1108774,57.0815023,367.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174952,,27.1113836,57.0813896,412.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174953,,27.1116939,57.0808102,478.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174954,,27.1109214,57.0804171,461.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174955,,27.1111353,57.0809658,427.7,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174956,,27.1113406,57.0808746,448.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8819174995,,27.1092496,57.0798107,464.8,unknown,Unknown / unclassified,,False,False,False,True
+node,8819175010,,27.1077128,57.0815091,323.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8819175011,,27.1075778,57.0815212,329.3,unknown,Unknown / unclassified,,False,False,False,True
+node,8819175012,,27.1070533,57.0818596,332.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8819175013,,27.1083156,57.0865582,215.0,unknown,Unknown / unclassified,,False,False,True,True
+node,8819175014,,27.1087236,57.0859469,145.6,unknown,Unknown / unclassified,,False,False,True,True
+node,8819175015,,27.1086946,57.0850037,56.1,unknown,Unknown / unclassified,,False,True,True,True
+node,8819175016,,27.1071855,57.0835523,213.2,unknown,Unknown / unclassified,,False,False,True,True
+node,8819175017,,27.1078875,57.0842274,116.8,unknown,Unknown / unclassified,,False,False,True,True
+node,8819175018,,27.1073122,57.0849793,184.3,unknown,Unknown / unclassified,,False,False,True,True
+node,8855569029,,27.1115112,57.0881871,466.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8855569030,,27.1120504,57.0861828,387.1,unknown,Unknown / unclassified,,False,False,False,True
+node,8855569031,,27.1121843,57.0863779,409.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8886927728,,27.104949,57.0833282,455.4,unknown,Unknown / unclassified,,False,False,False,True
+node,8886927729,,27.105177,57.0830464,439.2,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132345,,27.1078556,57.0873139,303.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132346,,27.1077651,57.0870283,281.6,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132347,,27.1075902,57.0870983,296.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132348,,27.1076806,57.0873838,317.3,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132349,,27.1074337,57.0878963,374.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132350,,27.10732,57.0876109,355.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132351,,27.1071979,57.0876723,368.0,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132352,,27.1073115,57.0879577,386.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132353,,27.1080938,57.0868803,253.3,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132354,,27.108027,57.0866617,236.3,unknown,Unknown / unclassified,,False,False,True,True
+node,8887132355,,27.1078828,57.0867174,248.3,unknown,Unknown / unclassified,,False,False,True,True
+node,8887132356,,27.1079496,57.0869359,264.5,unknown,Unknown / unclassified,,False,False,False,True
+node,8887132357,,27.107873,57.0866987,247.1,unknown,Unknown / unclassified,,False,False,True,True
+node,8887132358,,27.1077907,57.0864456,230.1,unknown,Unknown / unclassified,,False,False,True,True
+node,8887132359,,27.1076918,57.0864862,239.5,unknown,Unknown / unclassified,,False,False,True,True
+node,8887132360,,27.1077742,57.0867392,255.9,unknown,Unknown / unclassified,,False,False,False,True
+node,8906538400,,27.1091622,57.0875739,306.4,unknown,Unknown / unclassified,direction=both; traffic_calming=bump,False,False,False,True
+node,10234655198,,27.1121244,57.0875252,466.7,unknown,Unknown / unclassified,,False,False,False,True
+node,10234655200,,27.112616,57.0862568,447.5,unknown,Unknown / unclassified,,False,False,False,True
+node,10234655201,,27.1131778,57.0854739,484.3,unknown,Unknown / unclassified,,False,False,False,True
+node,10234655286,,27.1122308,57.0821486,435.9,unknown,Unknown / unclassified,,False,False,False,True
+node,10234655287,,27.1117554,57.0826584,364.6,unknown,Unknown / unclassified,,False,False,False,True
+node,10234655288,,27.1103292,57.0837873,172.4,unknown,Unknown / unclassified,,False,False,True,True
+node,10234655289,,27.1101941,57.0833685,180.8,unknown,Unknown / unclassified,,False,False,True,True
+node,10234655290,,27.1104642,57.0820394,297.8,unknown,Unknown / unclassified,,False,False,False,True
+node,10234655291,,27.1123496,57.082009,454.5,unknown,Unknown / unclassified,,False,False,False,True
+node,10234655788,,27.111651,57.0864687,362.1,unknown,Unknown / unclassified,,False,False,False,True
+node,10234655789,,27.1103087,57.0846074,155.8,unknown,Unknown / unclassified,,False,False,True,True
+node,10234655790,,27.1130115,57.0841859,456.9,unknown,Unknown / unclassified,,False,False,False,True
+node,10301119067,,27.1110445,57.0889022,496.9,unknown,Unknown / unclassified,,False,False,False,True
+node,10301119068,,27.1114123,57.0884493,480.4,unknown,Unknown / unclassified,,False,False,False,True
+node,10721934479,,27.1093748,57.0877331,325.0,unknown,Unknown / unclassified,,False,False,False,True
+node,10816078297,سوپرمارکت مالک حسن پور,27.1049604,57.0831966,457.6,civilian_general,Civilian general,name=سوپرمارکت مالک حسن پور; shop=convenience,False,False,False,True
+node,11506030546,,27.1065268,57.0886433,489.1,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030547,,27.107437,57.0887091,448.5,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030548,,27.1073934,57.088692,448.7,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030549,,27.1070419,57.0888315,477.2,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030550,,27.1070267,57.0888581,480.3,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030551,,27.1070849,57.0890126,491.4,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030552,,27.1075539,57.089037,474.6,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030553,,27.1069512,57.0876283,379.4,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030554,,27.1086233,57.0874477,294.4,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030555,,27.1082118,57.0876628,323.4,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030556,,27.1076916,57.0879264,366.1,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030557,,27.107599,57.0879738,374.3,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030558,,27.106765,57.0883636,451.5,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030559,,27.1064743,57.0885292,482.9,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030560,,27.1064023,57.0886016,493.3,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030561,,27.1074995,57.0873817,326.3,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030562,,27.1072778,57.0869623,304.7,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030563,,27.1072949,57.0869325,301.1,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030564,,27.1073328,57.0869219,297.8,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030565,,27.1073649,57.0869527,298.2,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030566,,27.1080314,57.0871657,282.2,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030567,,27.1082754,57.0878501,339.9,unknown,Unknown / unclassified,,False,False,False,True
+node,11506030568,,27.108813,57.0875774,305.6,unknown,Unknown / unclassified,,False,False,False,True
+node,11506046369,,27.1088687,57.0875816,305.9,unknown,Unknown / unclassified,,False,False,False,True
+node,11506046370,,27.1089121,57.0876004,307.7,unknown,Unknown / unclassified,,False,False,False,True
+node,11506046371,,27.1090146,57.0877149,319.3,unknown,Unknown / unclassified,,False,False,False,True
+node,11506046372,,27.1090715,57.0877966,327.6,unknown,Unknown / unclassified,,False,False,False,True
+node,11506056498,,27.1092591,57.0880991,359.2,unknown,Unknown / unclassified,,False,False,False,True
+node,12088002475,,27.1076985,57.0801366,451.6,unknown,Unknown / unclassified,,False,False,False,True
+node,12088002476,,27.1078121,57.0804774,415.7,unknown,Unknown / unclassified,,False,False,False,True
+node,13055695669,,27.1056159,57.0860658,398.2,unknown,Unknown / unclassified,,False,False,False,True
+way,183918804,بلوار رسالت,27.1087913,57.0868626,235.1,infrastructure_access,Infrastructure / access,highway=primary; lanes=3; maxspeed=60; name=بلوار رسالت; name:en=Resalat Boulevard; oneway=yes; ref=91,False,False,True,True
+way,183918809,بلوار رسالت,27.1085598,57.0871305,264.1,infrastructure_access,Infrastructure / access,highway=primary; lanes=3; name=بلوار رسالت; name:en=Resalat Boulevard; oneway=yes; ref=91,False,False,False,True
+way,363654756,,27.1319804,57.0877974,2585.9,unknown,Unknown / unclassified,,False,False,False,False
+way,594311559,بلوار المهدی,27.0997212,57.0878254,1073.9,infrastructure_access,Infrastructure / access,highway=tertiary; name=بلوار المهدی; oneway=yes,False,False,False,False
+way,594312765,,27.1065071,57.081706,384.0,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,594312771,رسالت دهم,27.1066861,57.0832711,275.3,infrastructure_access,Infrastructure / access,highway=residential; name=رسالت دهم,False,False,False,True
 way,594312775,,27.1058903,57.0824276,393.2,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
 way,594312776,,27.106336,57.0792543,592.2,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
-way,594312777,,27.1061894,57.0807464,478.6,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
-way,594312779,,27.1045957,57.0807958,603.4,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
-way,594312781,,27.104664,57.0817294,545.7,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
+way,594312777,رسالت یازدهم,27.1068804,57.0814122,379.3,infrastructure_access,Infrastructure / access,highway=residential; name=رسالت یازدهم,False,False,False,True
+way,594312779,کوچه ۶۴,27.1045957,57.0807958,603.4,infrastructure_access,Infrastructure / access,alt_name=شهید حسن مسلمی; highway=residential; name=کوچه ۶۴,False,False,False,False
+way,594312781,,27.105047,57.0817329,509.1,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
 way,594312782,,27.1053351,57.0824175,447.5,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
-way,594314398,,27.109186,57.0795534,489.7,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
-way,594314399,,27.1099319,57.0801629,443.2,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
-way,594314400,,27.1081707,57.0788517,564.3,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
-way,594314405,,27.1094682,57.0808035,370.2,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
-way,657133558,,27.1072865,57.0803227,450.4,unknown,Unknown / unclassified,,False,False,False,True
-way,657133559,,27.1071069,57.0804239,449.8,unknown,Unknown / unclassified,,False,False,False,True
-way,657133560,,27.1076048,57.0805956,412.1,unknown,Unknown / unclassified,,False,False,False,True
-way,657133561,,27.1071099,57.0816435,345.8,unknown,Unknown / unclassified,,False,False,False,True
-way,657133571,,27.1064427,57.0797031,547.7,unknown,Unknown / unclassified,,False,False,False,False
-way,657133572,,27.1063465,57.0803339,500.7,unknown,Unknown / unclassified,,False,False,False,False
-way,657133573,,27.1061426,57.080224,522.7,unknown,Unknown / unclassified,,False,False,False,False
-way,657133574,,27.1061483,57.0810175,461.1,unknown,Unknown / unclassified,,False,False,False,True
-way,709553071,,27.1093117,57.0876157,312.4,unknown,Unknown / unclassified,highway=primary_link,False,False,False,True
+way,594314398,,27.1092727,57.0795856,487.2,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,594314399,,27.1099381,57.0801296,446.6,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,594314400,,27.1082035,57.0788407,564.8,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
+way,594314405,,27.1093714,57.0810075,348.6,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,657133558,,27.1072865,57.0803227,450.4,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,657133559,,27.1071069,57.0804239,449.8,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,657133560,,27.1076514,57.0805691,412.7,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,657133561,,27.1071099,57.0816435,345.8,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,657133571,,27.1064427,57.0797031,547.7,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
+way,657133572,,27.1063465,57.0803339,500.7,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
+way,657133573,,27.1061426,57.080224,522.7,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
+way,657133574,,27.1061483,57.0810175,461.1,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,709553071,,27.1093117,57.0876157,312.4,unknown,Unknown / unclassified,highway=primary_link; oneway=no; surface=asphalt,False,False,False,True
 way,709553072,,27.1070123,57.0854101,229.9,unknown,Unknown / unclassified,highway=primary_link,False,False,True,True
-way,881526279,دانش,27.1031703,57.0878985,722.0,infrastructure_access,Infrastructure / access,highway=tertiary; name=دانش; oneway=yes,False,False,False,False
-way,881526281,قائم,27.1074355,57.0863603,247.3,infrastructure_access,Infrastructure / access,highway=tertiary; name=قائم; oneway=yes,False,False,True,True
-way,942758506,,27.1072852,57.086265,252.0,infrastructure_access,Infrastructure / access,highway=tertiary; oneway=yes,False,False,False,True
-way,942758507,پارک لاله,27.1045234,57.083426,499.2,unknown,Unknown / unclassified,leisure=park; name=پارک لاله,False,False,False,True
+way,942758506,,27.1072852,57.086265,252.0,unknown,Unknown / unclassified,highway=tertiary_link; oneway=yes,False,False,False,True
+way,942758507,پارک شهر,27.1045234,57.083426,499.2,unknown,Unknown / unclassified,leisure=park; name=پارک شهر; opening_hours=24/7; operator=شهرداری,False,False,False,True
 way,942758508,اداره جهاد کشاورزی میناب,27.1087591,57.0878143,329.3,government_institutional,Government / institutional,building=yes; name=اداره جهاد کشاورزی میناب; office=government,False,False,False,True
-way,942758509,آهن آلات و مصالح ساختمانی محمودی,27.1093904,57.0866726,222.4,civilian_general,Civilian general,building=yes; name=آهن آلات و مصالح ساختمانی محمودی; shop=yes,False,False,True,True
+way,942758509,آهن آلات  محمودی,27.1094309,57.0866295,219.4,civilian_general,Civilian general,building=yes; name=آهن آلات  محمودی; shop=yes,False,False,True,True
 way,942760673,پادگان سید الشهدا-عاصف,27.1082942,57.0848474,77.2,military_security,Military / security,landuse=military; military=range; name=پادگان سید الشهدا-عاصف,False,True,True,True
 way,944483950,,27.1075273,57.0861286,223.5,unknown,Unknown / unclassified,landuse=grass,False,False,True,True
-relation,8794901,جاده ۹۱,30.3521239,57.7846742,367227.6,unknown,Unknown / unclassified,distance=1720; from=Feyzabad; name=جاده ۹۱; name:en=Road 91; network=ir:national; ref=91; ref:fa=۹۱; route=road; to=Jask; type=route,False,False,False,False
+way,945642810,,27.109176,57.0785468,589.1,unknown,Unknown / unclassified,admin_level=11; boundary=administrative,False,False,False,False
+way,945642811,,27.1039152,57.0824379,591.6,unknown,Unknown / unclassified,admin_level=11; boundary=administrative,False,False,False,False
+way,945661016,,27.1091422,57.0933007,872.3,unknown,Unknown / unclassified,leisure=garden,False,False,False,False
+way,947033567,,27.1082437,57.0809189,361.3,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,949208655,,27.1063065,57.0887474,511.2,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
+way,949208656,,27.1087982,57.0874252,290.7,infrastructure_access,Infrastructure / access,barrier=gate,False,False,False,True
+way,949209519,رسالت هشتم,27.1109173,57.0874447,367.7,infrastructure_access,Infrastructure / access,highway=residential; name=رسالت هشتم,False,False,False,True
+way,949827386,,27.1082117,57.080092,442.3,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,949827387,,27.1095635,57.0799865,451.7,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,949827391,,27.1096871,57.0807111,384.0,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,949827392,,27.1087184,57.082213,226.5,infrastructure_access,Infrastructure / access,highway=residential,False,False,True,True
+way,949827393,,27.1071593,57.0820624,309.4,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,949827395,,27.1041909,57.0904055,786.2,unknown,Unknown / unclassified,,False,False,False,False
+way,951865654,,27.0961945,57.0771788,1588.5,civilian_general,Civilian general,barrier=wall; construction=yes; height=2; landuse=residential; material=concrete; residential=apartments; wall=concrete,False,False,False,False
+way,951865668,,27.1074751,57.0875241,340.0,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,951865669,,27.1087672,57.0878383,331.7,infrastructure_access,Infrastructure / access,highway=service,False,False,False,True
+way,951865680,,27.1087171,57.0903349,578.8,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
+way,951865687,,27.1069712,57.0886766,467.1,unknown,Unknown / unclassified,building=yes,False,False,False,True
+way,951865688,,27.1074294,57.089294,503.1,unknown,Unknown / unclassified,building=yes,False,False,False,False
+way,951865689,,27.1090582,57.0884479,392.0,unknown,Unknown / unclassified,building=yes,False,False,False,True
+way,952814330,,27.1067289,57.0882565,444.7,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814331,,27.1084739,57.0884047,390.4,infrastructure_access,Infrastructure / access,highway=service,False,False,False,True
+way,952814332,,27.1065092,57.0892044,537.6,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
+way,952814337,,27.1073359,57.0889687,476.5,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814338,,27.1071837,57.0875239,356.4,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814339,رسالت نهم,27.1095861,57.0852339,105.0,infrastructure_access,Infrastructure / access,highway=residential; name=رسالت نهم,False,False,True,True
+way,952814340,,27.1098676,57.0831589,169.4,infrastructure_access,Infrastructure / access,highway=residential,False,False,True,True
+way,952814341,,27.1100075,57.0828698,201.5,infrastructure_access,Infrastructure / access,highway=residential,False,False,True,True
+way,952814342,,27.1102594,57.082881,218.8,infrastructure_access,Infrastructure / access,highway=residential,False,False,True,True
+way,952814343,,27.1100377,57.0827118,216.1,infrastructure_access,Infrastructure / access,highway=residential,False,False,True,True
+way,952814344,,27.1100027,57.0817085,301.0,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814345,,27.1098121,57.0817657,287.8,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814346,,27.1096008,57.0817075,286.0,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814347,,27.110309,57.0811159,368.5,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814348,,27.1116996,57.0802983,518.0,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,False
+way,952814349,,27.1111597,57.0812132,409.6,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814350,,27.111131,57.0806915,449.9,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814365,,27.1090794,57.0795248,491.9,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814372,,27.1076453,57.0815152,326.5,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814373,,27.1075242,57.0813969,342.9,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,952814374,,27.1079546,57.0850552,120.1,infrastructure_access,Infrastructure / access,highway=service,False,False,True,True
+way,952814375,,27.1075998,57.0846034,146.3,infrastructure_access,Infrastructure / access,highway=service,False,False,True,True
+way,956993923,,27.1116415,57.0884578,496.3,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,956993924,,27.1120117,57.0874912,455.0,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,956993925,,27.1119455,57.0863875,386.1,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,960661164,رسالت دوازدهم,27.1052464,57.0829811,434.1,infrastructure_access,Infrastructure / access,highway=residential; name=رسالت دوازدهم,False,False,False,True
+way,960684904,,27.1077229,57.087206,299.4,unknown,Unknown / unclassified,building=yes,False,False,False,True
+way,960684905,,27.1073158,57.0877843,371.1,unknown,Unknown / unclassified,building=yes,False,False,False,True
+way,960684906,,27.1079883,57.0867988,250.4,unknown,Unknown / unclassified,building=yes,False,False,False,True
+way,960684907,,27.1077824,57.0865924,242.9,unknown,Unknown / unclassified,building=yes,False,False,True,True
+way,961092737,بلوار المهدی,27.0999579,57.0881152,1058.2,infrastructure_access,Infrastructure / access,highway=tertiary; name=بلوار المهدی; oneway=yes,False,False,False,False
+way,1119061294,,27.1165173,57.0856544,853.5,unknown,Unknown / unclassified,natural=wood,False,False,False,False
+way,1119061299,,27.1116028,57.083747,308.2,unknown,Unknown / unclassified,landuse=forest,False,False,False,True
+way,1126544410,کوچه هفتم,27.1111722,57.0887589,491.5,infrastructure_access,Infrastructure / access,highway=residential; name=کوچه هفتم,False,False,False,True
+way,1152744871,,27.112361,57.091351,779.8,unknown,Unknown / unclassified,,False,False,False,False
+way,1238616089,,27.1073545,57.0891616,493.6,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,1238616090,,27.1074928,57.0880673,387.5,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,1238616091,,27.1074579,57.0874006,330.2,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,1238616092,,27.1074824,57.0874729,335.2,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,1238616093,,27.1081384,57.0874606,306.2,infrastructure_access,Infrastructure / access,highway=service,False,False,False,True
+way,1238616094,,27.1083176,57.0879649,350.1,infrastructure_access,Infrastructure / access,highway=service,False,False,False,True
+way,1238618968,,27.1086554,57.0880597,354.3,infrastructure_access,Infrastructure / access,highway=service,False,False,False,True
+way,1305134364,,27.1078555,57.0800732,452.8,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,1305134365,,27.107635,57.0798805,477.9,infrastructure_access,Infrastructure / access,highway=residential,False,False,False,True
+way,1420682883,,27.1035248,57.0836607,604.6,unknown,Unknown / unclassified,highway=construction,False,False,False,False
+relation,8794901,جاده ۹۱,30.3520778,57.8076348,367658.2,unknown,Unknown / unclassified,distance=1420; from=Feyzabad; name=جاده ۹۱; name:en=Road 91 (Iran); name:ko=국도 제91호선 (이란); name:tr=Karayolu 91 (İran); network=IR:national; ref=91; ref:fa=۹۱; route=road; to=Jask; type=route; wikidata=Q4811985; wikipedia=fa:جاده ۹۱ (ایران),False,False,False,False
+relation,12742529,پریتقی-پزیتکی,27.1069403,57.0785468,627.9,unknown,Unknown / unclassified,boundary=place; name=پریتقی-پزیتکی; name:en=paritaghi; type=boundary,False,False,False,False
+relation,12742694,میناب,27.1320493,57.0786248,2637.5,civilian_general,Civilian general,landuse=residential; name=میناب; type=multipolygon,False,False,False,False
+relation,12800250,کریم آباد,27.1071771,57.09368,929.7,unknown,Unknown / unclassified,admin_level=11; boundary=administrative; name=کریم آباد; type=boundary,False,False,False,False
+relation,15627951,,27.1093117,57.0876157,312.4,unknown,Unknown / unclassified,route=road; type=route,False,False,False,True
+relation,15627960,,27.1072852,57.086265,252.0,unknown,Unknown / unclassified,route=road; type=route,False,False,False,True

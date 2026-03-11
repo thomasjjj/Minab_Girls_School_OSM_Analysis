@@ -35,18 +35,19 @@ SPATIAL METRICS
 LOCAL OSM CONTEXT (CDE INFORMATION ENVIRONMENT)
 ----------------------------------------------------------------------------------------------------
 - Analysis centroid: 27.10891, 57.08449
-- Pre-strike query date: 2021-05-19T02:17:22Z
-- Pre-strike features within 500m: 151
+- Historical query date: 2026-02-21T00:00:00Z (one week before strike)
+- Strike date: 2026-02-28T00:00:00+00:00
+- Pre-strike features within 500m: 413
 - Current features within 500m: 1021
-- Features added after strike: 890
-- Features removed after strike: 20
+- Features added after strike: 627
+- Features removed after strike: 19
 
   Pre-strike features by category:
-    Civilian general: 4
+    Civilian general: 9
     Military / security: 1
-    Government / institutional: 3
-    Infrastructure / access: 18
-    Unknown / unclassified: 125
+    Government / institutional: 4
+    Infrastructure / access: 73
+    Unknown / unclassified: 326
   Current features by category:
     Civilian sensitive: 2
     Civilian general: 12

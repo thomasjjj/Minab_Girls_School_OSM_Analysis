@@ -77,6 +77,7 @@ EDIT_TYPE_STYLES = {
 
 LOCAL_CONTEXT_RADII_M = [50, 100, 250, 500]
 LOCAL_CONTEXT_QUERY_RADIUS_M = 500
+LOCAL_CONTEXT_PRESTRIKE_OFFSET_DAYS = 7
 OVERPASS_API_URL = "https://overpass-api.de/api/interpreter"
 
 CDE_CATEGORIES = {
@@ -203,6 +204,18 @@ def iso_timestamp(value):
     if value is None or pd.isna(value):
         return None
     return pd.Timestamp(value).tz_convert("UTC").isoformat()
+
+
+def local_context_prestrike_descriptor():
+    if LOCAL_CONTEXT_PRESTRIKE_OFFSET_DAYS == 7:
+        return "one week before strike"
+    if LOCAL_CONTEXT_PRESTRIKE_OFFSET_DAYS == 1:
+        return "one day before strike"
+    return f"{LOCAL_CONTEXT_PRESTRIKE_OFFSET_DAYS} days before strike"
+
+
+def local_context_prestrike_timestamp(strike_timestamp):
+    return pd.Timestamp(strike_timestamp).tz_convert("UTC") - pd.Timedelta(days=LOCAL_CONTEXT_PRESTRIKE_OFFSET_DAYS)
 
 
 def safe_float(value):
@@ -1751,7 +1764,9 @@ def compare_prestrike_current(df_pre, df_current):
     return merged
 
 
-def build_local_context_summary(df_pre, df_current, radii, center_lat, center_lon, pre_date_iso, strike_date_iso):
+def build_local_context_summary(df_pre, df_current, radii, center_lat, center_lon,
+                                pre_date_iso, strike_date_iso, pre_date_description,
+                                pre_date_offset_days):
     """Build summary dict for local context JSON output."""
     def counts_by_category(df):
         if df.empty:
@@ -1787,6 +1802,8 @@ def build_local_context_summary(df_pre, df_current, radii, center_lat, center_lo
         "center": {"lat": center_lat, "lon": center_lon},
         "strike_date": strike_date_iso,
         "query_date_prestrike": pre_date_iso,
+        "query_description_prestrike": pre_date_description,
+        "query_offset_days_prestrike": pre_date_offset_days,
         "query_date_current": "now",
         "radii_m": radii,
         "prestrike": {
@@ -1905,7 +1922,7 @@ def plot_local_context_map(df, center_lat, center_lon, radii, title, output_path
 
 def plot_local_context_comparison(df_pre, df_current, center_lat, center_lon, radii,
                                   output_path, way_overlays=None, pre_date_label="",
-                                  strike_date_label=""):
+                                  strike_date_label="", pre_context_label="Pre-strike"):
     """Create a multi-panel comparison of pre-strike vs current local OSM context."""
     max_radius = max(radii)
     delta_lat = max_radius / 111_320.0 * 1.3
@@ -1923,7 +1940,7 @@ def plot_local_context_comparison(df_pre, df_current, center_lat, center_lon, ra
 
     # --- Top panels: side-by-side context maps ---
     for ax, df, panel_title in [
-        (ax_pre, df_pre, f"Pre-strike ({pre_date_label})"),
+        (ax_pre, df_pre, f"{pre_context_label} ({pre_date_label})"),
         (ax_cur, df_current, "Current"),
     ]:
         ax.imshow(basemap_image, origin="upper")
@@ -1977,7 +1994,7 @@ def plot_local_context_comparison(df_pre, df_current, center_lat, center_lon, ra
         cur_counts = [c[2] for c in categories_with_data]
         x = np.arange(len(cat_labels))
         bar_width = 0.35
-        ax_density.bar(x - bar_width / 2, pre_counts, bar_width, label=f"Pre-strike ({pre_date_label})",
+        ax_density.bar(x - bar_width / 2, pre_counts, bar_width, label=f"{pre_context_label} ({pre_date_label})",
                        color="#90CAF9", edgecolor="#1565C0", linewidth=0.8)
         ax_density.bar(x + bar_width / 2, cur_counts, bar_width, label="Current",
                        color="#FFCC80", edgecolor="#E65100", linewidth=0.8)
@@ -1998,6 +2015,7 @@ def plot_local_context_comparison(df_pre, df_current, center_lat, center_lon, ra
 
     summary_lines = []
     summary_lines.append(f"Strike date: {strike_date_label}")
+    summary_lines.append(f"Historical query: {pre_context_label} ({pre_date_label})")
     summary_lines.append(f"Analysis radius: {max_radius}m")
     summary_lines.append(f"Pre-strike features: {len(df_pre)}")
     summary_lines.append(f"Current features: {len(df_current)}")
@@ -2294,6 +2312,8 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
         cur_mil = lc["current"]["by_category"].get("military_security", 0)
         max_r = max(lc["radii_m"])
         center = lc["center"]
+        pre_query_description = lc.get("query_description_prestrike", local_context_prestrike_descriptor())
+        pre_query_date_label = format_date(lc["query_date_prestrike"])
 
         cde_answer = (
             f"**Yes**: {pre_civ} civilian-sensitive feature(s) were present in the pre-strike OSM record within {max_r}m."
@@ -2306,9 +2326,10 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
             "",
             f"This section reconstructs the local OpenStreetMap information environment within {max_r}m of the analysis centroid "
             f"({center['lat']:.5f}, {center['lon']:.5f}) to test what a collateral damage estimation (CDE) process relying on OSM "
-            f"data might have seen before and after the strike.",
+            f"data might have seen from a historical snapshot taken {pre_query_description} ({pre_query_date_label}) and from the current record.",
             "",
-            f"- **Pre-strike query date**: {lc['query_date_prestrike']}",
+            f"- **Historical query date**: {lc['query_date_prestrike']} ({pre_query_description})",
+            f"- **Strike date**: {lc['strike_date']}",
             f"- **Pre-strike features found**: {pre_total} (of which {pre_civ} civilian-sensitive, {pre_mil} military/security)",
             f"- **Current features found**: {cur_total} (of which {cur_civ} civilian-sensitive, {cur_mil} military/security)",
             f"- **Features added after strike**: {lc['comparison'].get('added', 0)}",
@@ -2318,18 +2339,18 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
             "",
             f"![Pre-strike local context]({repo_relative(output_dir / 'local_context_prestrike.png', root_dir)})",
             "",
-            f"This map shows the {pre_total} OSM features within {max_r}m of the analysis centroid as recorded before the strike, "
-            "coloured by CDE category. Concentric circles mark the 50m, 100m, 250m, and 500m radius bands.",
+            f"This map shows the {pre_total} OSM features within {max_r}m of the analysis centroid as recorded {pre_query_description} "
+            f"on {pre_query_date_label}, coloured by CDE category. Concentric circles mark the 50m, 100m, 250m, and 500m radius bands.",
             "",
             f"![Current local context]({repo_relative(output_dir / 'local_context_current.png', root_dir)})",
             "",
-            f"The same view using the current OSM record, showing {cur_total} features. Comparing the two maps reveals "
-            "how the local information environment has changed since the strike.",
+            f"The same view using the current OSM record, showing {cur_total} features. Comparing this current snapshot against the "
+            f"{pre_query_date_label} historical view reveals how the local information environment has changed since the strike.",
             "",
             f"![Local context comparison]({repo_relative(output_dir / 'local_context_comparison.png', root_dir)})",
             "",
             "This comparison panel combines side-by-side maps with a feature density chart and CDE summary. "
-            "The density chart shows feature counts by category for pre-strike versus current, while the summary panel "
+            f"The density chart shows feature counts by category for the {pre_query_date_label} historical snapshot versus current, while the summary panel "
             "directly addresses whether the pre-strike OSM record contained enough information to flag civilian presence.",
             "",
         ])
@@ -2456,7 +2477,11 @@ def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, c
         lc = local_context_summary
         lines.extend(["", "LOCAL OSM CONTEXT (CDE INFORMATION ENVIRONMENT)", "-" * 100])
         lines.append(f"- Analysis centroid: {lc['center']['lat']:.5f}, {lc['center']['lon']:.5f}")
-        lines.append(f"- Pre-strike query date: {lc['query_date_prestrike']}")
+        lines.append(
+            f"- Historical query date: {lc['query_date_prestrike']} "
+            f"({lc.get('query_description_prestrike', local_context_prestrike_descriptor())})"
+        )
+        lines.append(f"- Strike date: {lc['strike_date']}")
         lines.append(f"- Pre-strike features within {max(lc['radii_m'])}m: {lc['prestrike']['total_features']}")
         lines.append(f"- Current features within {max(lc['radii_m'])}m: {lc['current']['total_features']}")
         lines.append(f"- Features added after strike: {lc['comparison'].get('added', 0)}")
@@ -2597,16 +2622,11 @@ def run():
         print(f"\n=== LOCAL CONTEXT COLLECTION ===")
         print(f"Analysis centroid: {centroid_lat:.6f}, {centroid_lon:.6f}")
 
-        # Determine pre-strike query date from last pre-strike way state
-        pre_strike_query_date = strike_timestamp - pd.Timedelta(days=1)
-        for way_id in WAY_IDS:
-            pre_row = all_milestones[way_id]["last_pre_strike"]
-            if pre_row is not None:
-                pre_strike_query_date = pre_row["timestamp"]
-                break
+        pre_strike_query_date = local_context_prestrike_timestamp(strike_timestamp)
+        pre_strike_description = local_context_prestrike_descriptor()
         pre_strike_iso = pre_strike_query_date.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        print(f"Querying Overpass API for pre-strike state ({pre_strike_iso})...")
+        print(f"Querying Overpass API for historical state {pre_strike_description} ({pre_strike_iso})...")
         query_pre = build_overpass_query(centroid_lat, centroid_lon,
                                          LOCAL_CONTEXT_QUERY_RADIUS_M,
                                          date_iso=pre_strike_iso)
@@ -2644,6 +2664,7 @@ def run():
             df_pre, df_current, LOCAL_CONTEXT_RADII_M,
             centroid_lat, centroid_lon,
             pre_strike_iso, iso_timestamp(strike_timestamp),
+            pre_strike_description, LOCAL_CONTEXT_PRESTRIKE_OFFSET_DAYS,
         )
         local_summary_path = output_dir / "nearby_features_summary.json"
         local_summary_path.write_text(
@@ -2662,10 +2683,11 @@ def run():
 
         pre_date_label = format_date(pre_strike_query_date)
         strike_date_label = format_date(strike_timestamp)
+        pre_context_label = pre_strike_description.capitalize()
 
         pre_map_path = output_dir / "local_context_prestrike.png"
         plot_local_context_map(df_pre, centroid_lat, centroid_lon, LOCAL_CONTEXT_RADII_M,
-                               f"Local OSM context: pre-strike ({pre_date_label})",
+                               f"Local OSM context: {pre_strike_description} ({pre_date_label})",
                                pre_map_path, way_overlays=latest_way_coords)
         generated_files.append(pre_map_path)
 
@@ -2680,7 +2702,8 @@ def run():
                                       LOCAL_CONTEXT_RADII_M, comparison_map_path,
                                       way_overlays=latest_way_coords,
                                       pre_date_label=pre_date_label,
-                                      strike_date_label=strike_date_label)
+                                      strike_date_label=strike_date_label,
+                                      pre_context_label=pre_context_label)
         generated_files.append(comparison_map_path)
 
         print(f"Local context: {len(df_pre)} pre-strike features, {len(df_current)} current features")

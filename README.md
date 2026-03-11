@@ -89,51 +89,52 @@ This figure turns the edit history and spatial analysis into a brief interpretiv
 
 ## Local OSM Context and CDE-Relevant Information Environment
 
-This section reconstructs the local OpenStreetMap information environment within 500m of the analysis centroid (27.10891, 57.08449) to test what a collateral damage estimation (CDE) process relying on OSM data might have seen before and after the strike.
+This section reconstructs the local OpenStreetMap information environment within 500m of the analysis centroid (27.10891, 57.08449) to test what a collateral damage estimation (CDE) process relying on OSM data might have seen from a historical snapshot taken one week before strike (2026-02-21) and from the current record.
 
-- **Pre-strike query date**: 2021-05-19T02:17:22Z
-- **Pre-strike features found**: 151 (of which 0 civilian-sensitive, 1 military/security)
+- **Historical query date**: 2026-02-21T00:00:00Z (one week before strike)
+- **Strike date**: 2026-02-28T00:00:00+00:00
+- **Pre-strike features found**: 413 (of which 0 civilian-sensitive, 1 military/security)
 - **Current features found**: 1021 (of which 2 civilian-sensitive, 14 military/security)
-- **Features added after strike**: 890
-- **Features removed after strike**: 20
+- **Features added after strike**: 627
+- **Features removed after strike**: 19
 
 **Would a pre-strike CDE query have flagged civilian-sensitive features nearby?** **No**: zero civilian-sensitive features were present in the pre-strike OSM record within 500m. The current record now shows 2.
 
 ![Pre-strike local context](results/local_context_prestrike.png)
 
-This map shows the 151 OSM features within 500m of the analysis centroid as recorded before the strike, coloured by CDE category. Concentric circles mark the 50m, 100m, 250m, and 500m radius bands.
+This map shows the 413 OSM features within 500m of the analysis centroid as recorded one week before strike on 2026-02-21, coloured by CDE category. Concentric circles mark the 50m, 100m, 250m, and 500m radius bands.
 
 ![Current local context](results/local_context_current.png)
 
-The same view using the current OSM record, showing 1021 features. Comparing the two maps reveals how the local information environment has changed since the strike.
+The same view using the current OSM record, showing 1021 features. Comparing this current snapshot against the 2026-02-21 historical view reveals how the local information environment has changed since the strike.
 
 ![Local context comparison](results/local_context_comparison.png)
 
-This comparison panel combines side-by-side maps with a feature density chart and CDE summary. The density chart shows feature counts by category for pre-strike versus current, while the summary panel directly addresses whether the pre-strike OSM record contained enough information to flag civilian presence.
+This comparison panel combines side-by-side maps with a feature density chart and CDE summary. The density chart shows feature counts by category for the 2026-02-21 historical snapshot versus current, while the summary panel directly addresses whether the pre-strike OSM record contained enough information to flag civilian presence.
 
 ### Named features near the site
 
 | Name | Pre-strike | Current |
 | --- | --- | --- |
 | Shajareh Tayyebeh girls' elementary school |  | civilian_sensitive (88m) |
-| آهن آلات زارع | civilian_general (471m) | civilian_general (447m) |
-| آهن آلات شیخ آبادی |  | civilian_general (369m) |
-| آهن آلات و مصالح ساختمانی محمودی | civilian_general (222m) | civilian_general (239m) |
-| اداره آب و فاضلاب |  | government_institutional (292m) |
-| اداره آب و فاضلاب روستایی | government_institutional (318m) |  |
+| آهن آلات  محمودی | civilian_general (219m) |  |
+| آهن آلات زارع | civilian_general (447m) | civilian_general (447m) |
+| آهن آلات شیخ آبادی | civilian_general (380m) | civilian_general (369m) |
+| آهن آلات و مصالح ساختمانی محمودی |  | civilian_general (239m) |
+| اداره آب و فاضلاب | government_institutional (318m) | government_institutional (292m) |
 | اداره جهاد کشاورزی میناب | government_institutional (329m) | government_institutional (329m) |
-| اداره شیلات میناب |  | government_institutional (357m) |
-| بلوار رسالت | infrastructure_access (266m) | infrastructure_access (264m) |
-| تعمیرگاه جنوب |  | civilian_general (498m) |
-| جاده ۹۱ | unknown (367228m) |  |
+| اداره شیلات میناب | government_institutional (358m) | government_institutional (357m) |
+| بلوار المهدی | infrastructure_access (1074m) |  |
+| بلوار رسالت | infrastructure_access (264m) | infrastructure_access (264m) |
+| تعمیرگاه جنوب | civilian_general (498m) | civilian_general (498m) |
+| جاده ۹۱ | unknown (367658m) |  |
 | داروخانه دکتر محمد قادری |  | civilian_general (146m) |
-| دانش | infrastructure_access (1088m) |  |
-| رسالت دهم |  | infrastructure_access (270m) |
-| رسالت دوازدهم |  | infrastructure_access (436m) |
-| رسالت نهم |  | infrastructure_access (168m) |
-| رسالت هشتم |  | infrastructure_access (368m) |
-| رسالت یازدهم |  | infrastructure_access (378m) |
-| سوپرمارکت مالک حسن پور |  | civilian_general (458m) |
+| رسالت دهم | infrastructure_access (275m) | infrastructure_access (270m) |
+| رسالت دوازدهم | infrastructure_access (434m) | infrastructure_access (436m) |
+| رسالت نهم | infrastructure_access (105m) | infrastructure_access (168m) |
+| رسالت هشتم | infrastructure_access (368m) | infrastructure_access (368m) |
+| رسالت یازدهم | infrastructure_access (379m) | infrastructure_access (378m) |
+| سوپرمارکت مالک حسن پور | civilian_general (458m) | civilian_general (458m) |
 | سید الشهدا-عاصف |  | military_security (65m) |
 
 ## Pre-strike State Comparison
