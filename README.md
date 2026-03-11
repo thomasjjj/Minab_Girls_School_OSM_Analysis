@@ -2,8 +2,6 @@
 
 ## Short Context
 
-*All findings in this repository are a technical analysis of information available online recorded through tracked changes over time. It is intended to clarify a situation where information was limited. It does not intend to state any definitive association between the events and Open Street Map.* 
-
 This repository is a post-incident OpenStreetMap history review focused on the mapping state around the strike on the Shajareh Tayyebeh girls' school in Minab on 28 February 2026. The outputs are intended for forensic, journalistic, and technical review, not operational analysis.
 
 ## Methodology
@@ -29,7 +27,7 @@ The analytical divider used by this run is **2026-02-28 00:00:00 UTC**. The scri
 - The school polygon first appears on 2026-03-03 03:03:10 UTC, after the strike divider of 2026-02-28 00:00:00 UTC.
 - The smaller suspected compound polygon also appears only after the strike, first at 2026-03-05 18:06:31 UTC.
 - The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.
-- Overall OSM conflation-risk rating from these indicators: High (86/100).
+- Overall OSM conflation-risk rating from these indicators: High.
 - Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026.
 
 ## Timeline Visualisations
@@ -62,7 +60,7 @@ This panel shows the first available post-strike state for each way. It makes th
 
 ![Conflation risk summary](results/conflation_risk.png)
 
-This figure turns the edit history into a brief interpretive summary. The current audit score is High (86/100), driven mainly by the existence of a broader pre-strike barracks perimeter and the post-strike arrival of more explicit school and smaller military-base mapping.
+This figure turns the edit history into a brief interpretive summary. The current qualitative audit rating is High, driven mainly by the existence of a broader pre-strike barracks perimeter and the post-strike arrival of more explicit school and smaller military-base mapping.
 
 ## Pre-strike State Comparison
 
@@ -74,7 +72,7 @@ This figure turns the edit history into a brief interpretive summary. The curren
 
 ## Why the Edit History May Matter
 
-The current indicator score rates the OSM record as **High** concern for conflation risk (86/100). In this repository, that means the degree to which the pre-strike map record was explicit enough to keep the school, the smaller adjacent compound, and the broader military area clearly distinct. This is an audit heuristic, not a legal or operational conclusion.
+The current qualitative audit rating for conflation risk is **High**. In this repository, that means the degree to which the pre-strike map record was explicit enough to keep the school, the smaller adjacent compound, and the broader military area clearly distinct. This is an audit heuristic, not a legal or operational conclusion.
 
 ## Caveats
 
@@ -117,7 +115,6 @@ The current indicator score rates the OSM record as **High** concern for conflat
 - `results/way_942760673_geometry_overlay.png`
 - `results/way_942760673_history_analysis.csv`
 - `results/way_942760673_timeline.png`
-- `results/way_history_animation.gif`
 - `results/way_history_summary.csv`
 
 ## Reproducibility / How to Run

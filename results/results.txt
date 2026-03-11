@@ -7,12 +7,12 @@ KEY FINDINGS
 - The school polygon first appears on 2026-03-03 03:03:10 UTC, after the strike divider of 2026-02-28 00:00:00 UTC.
 - The smaller suspected compound polygon also appears only after the strike, first at 2026-03-05 18:06:31 UTC.
 - The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.
-- Overall OSM conflation-risk rating from these indicators: High (86/100).
+- Overall OSM conflation-risk rating from these indicators: High.
 - Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026.
 
 CONFLATION RISK
 ----------------------------------------------------------------------------------------------------
-Overall rating: High (86/100)
+Overall rating: High
 - Separate pre-strike school polygon: No separate school way is present before the strike date in this OSM history.
 - Separate pre-strike compound polygon: No smaller adjacent compound way is present before the strike date.
 - Broader pre-strike military-area polygon: A broader military-tagged barracks area is present before the strike date.

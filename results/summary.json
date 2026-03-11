@@ -1,7 +1,7 @@
 {
   "project_title": "OpenStreetMap History Audit: Shajareh Tayyebeh Girls' School and Adjacent Military Mapping in Minab, Iran",
   "strike_date": "2026-02-28T00:00:00+00:00",
-  "generated_at": "2026-03-11T11:00:03.145129+00:00",
+  "generated_at": "2026-03-11T11:07:28.126196+00:00",
   "ways": {
     "1485767423": {
       "metadata": {
@@ -200,7 +200,7 @@
     "The school polygon first appears on 2026-03-03 03:03:10 UTC, after the strike divider of 2026-02-28 00:00:00 UTC.",
     "The smaller suspected compound polygon also appears only after the strike, first at 2026-03-05 18:06:31 UTC.",
     "The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.",
-    "Overall OSM conflation-risk rating from these indicators: High (86/100).",
+    "Overall OSM conflation-risk rating from these indicators: High.",
     "Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026."
   ],
   "conflation_assessment": {
@@ -266,7 +266,6 @@
     "results/way_942760673_geometry_overlay.png",
     "results/way_942760673_history_analysis.csv",
     "results/way_942760673_timeline.png",
-    "results/way_history_animation.gif",
     "results/way_history_summary.csv"
   ]
 }

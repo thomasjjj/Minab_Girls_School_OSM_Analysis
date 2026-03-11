@@ -1164,7 +1164,7 @@ def plot_conflation_risk(conflation, output_path):
     ax.add_patch(rating_box)
     ax.text(0.17, 0.81, "Conflation Risk", fontsize=15, color="white", fontweight="bold", ha="center", transform=ax.transAxes)
     ax.text(0.17, 0.69, conflation["overall_rating"], fontsize=26, color="white", fontweight="bold", ha="center", transform=ax.transAxes)
-    ax.text(0.17, 0.58, f"{conflation['score']}/100", fontsize=18, color="white", ha="center", transform=ax.transAxes)
+    ax.text(0.17, 0.58, "Qualitative audit rating", fontsize=14, color="white", ha="center", transform=ax.transAxes)
 
     status_colors = {"clear": "#2E7D32", "ambiguous": "#F9A825", "risk": "#C62828", "unknown": "#607D8B"}
     ax.text(0.36, 0.93, "Traffic-light summary of map clarity before and after 28 February 2026", fontsize=12, fontweight="bold", ha="left", transform=ax.transAxes)
@@ -1226,7 +1226,7 @@ def generate_key_findings(summary_by_way, conflation, strike_timestamp):
     )
     if barracks["existed_pre_strike"]:
         findings.append("The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.")
-    findings.append(f"Overall OSM conflation-risk rating from these indicators: {conflation['overall_rating']} ({conflation['score']}/100).")
+    findings.append(f"Overall OSM conflation-risk rating from these indicators: {conflation['overall_rating']}.")
     findings.append("Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026.")
     return findings
 
@@ -1364,7 +1364,7 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
             "",
             f"![Conflation risk summary]({repo_relative(output_dir / 'conflation_risk.png', root_dir)})",
             "",
-            f"This figure turns the edit history into a brief interpretive summary. The current audit score is {conflation['overall_rating']} ({conflation['score']}/100), driven mainly by the existence of a broader pre-strike barracks perimeter and the post-strike arrival of more explicit school and smaller military-base mapping.",
+            f"This figure turns the edit history into a brief interpretive summary. The current qualitative audit rating is {conflation['overall_rating']}, driven mainly by the existence of a broader pre-strike barracks perimeter and the post-strike arrival of more explicit school and smaller military-base mapping.",
             "",
             "## Pre-strike State Comparison",
             "",
@@ -1372,7 +1372,7 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
             "",
             "## Why the Edit History May Matter",
             "",
-            f"The current indicator score rates the OSM record as **{conflation['overall_rating']}** concern for conflation risk ({conflation['score']}/100). In this repository, that means the degree to which the pre-strike map record was explicit enough to keep the school, the smaller adjacent compound, and the broader military area clearly distinct. This is an audit heuristic, not a legal or operational conclusion.",
+            f"The current qualitative audit rating for conflation risk is **{conflation['overall_rating']}**. In this repository, that means the degree to which the pre-strike map record was explicit enough to keep the school, the smaller adjacent compound, and the broader military area clearly distinct. This is an audit heuristic, not a legal or operational conclusion.",
             "",
             "## Caveats",
             "",
@@ -1440,7 +1440,7 @@ def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, c
     ]
     for finding in key_findings:
         lines.append(f"- {finding}")
-    lines.extend(["", "CONFLATION RISK", "-" * 100, f"Overall rating: {conflation['overall_rating']} ({conflation['score']}/100)"])
+    lines.extend(["", "CONFLATION RISK", "-" * 100, f"Overall rating: {conflation['overall_rating']}"])
     for indicator in conflation["indicators"]:
         lines.append(f"- {indicator['label']}: {indicator['detail']}")
     lines.extend(["", "WAY NARRATIVES", "-" * 100])
