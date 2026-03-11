@@ -2,6 +2,8 @@
 
 ## Short Context
 
+*All findings in this repository are a technical analysis of information available online recorded through tracked changes over time. It is intended to clarify a situation where information was limited. It does not intend to state any definitive association between the events and Open Street Map.* 
+
 This repository is a post-incident OpenStreetMap history review focused on the mapping state around the strike on the Shajareh Tayyebeh girls' school in Minab on 28 February 2026. The outputs are intended for forensic, journalistic, and technical review, not operational analysis.
 
 ## Methodology
