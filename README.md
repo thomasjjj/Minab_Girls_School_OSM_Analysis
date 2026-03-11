@@ -27,6 +27,7 @@ The analytical divider used by this run is **2026-02-28 00:00:00 UTC**. The scri
 - The school polygon first appears on 2026-03-03 03:03:10 UTC, after the strike divider of 2026-02-28 00:00:00 UTC.
 - The smaller suspected compound polygon also appears only after the strike, first at 2026-03-05 18:06:31 UTC.
 - The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.
+- The school and compound polygons share 5 boundary node(s), meaning they were explicitly drawn as adjacent with touching edges in the post-strike OSM record.
 - Overall OSM conflation-risk rating from these indicators: High.
 - Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026.
 
@@ -52,15 +53,29 @@ This overlay shows the latest OSM state, where the School, Military base, and Ba
 
 ![Last pre-strike combined map](results/state_maps/last_pre_strike_combined.png)
 
-This is the key pre-strike reference image. In the current history, the school and the smaller military base are not yet present here as separate ways, while the broader barracks boundary remains the main military-tagged pre-strike polygon.
+This is the key pre-strike reference image. In the current history, the school and the smaller military base are not yet present here as separate ways, while the broader barracks boundary remains the main military-tagged pre-strike polygon. Barracks last pre-strike state: 2021-05-19 02:17:22 UTC; School: not mapped before strike; Military base: not mapped before strike.
 
 ![First post-strike combined map](results/state_maps/first_post_strike_combined.png)
 
-This panel shows the first available post-strike state for each way. It makes the map clarification visible by showing when the school and smaller military-base polygons first appear as distinct objects in OSM.
+This panel shows the first available post-strike state for each way. It makes the map clarification visible by showing when the school and smaller military-base polygons first appear as distinct objects in OSM. Barracks first post-strike state: 2026-03-03 03:03:10 UTC; School first post-strike state: 2026-03-03 03:03:10 UTC; Military base first post-strike state: 2026-03-05 18:06:31 UTC.
+
+![Before vs after comparison](results/before_after_comparison.png)
+
+This side-by-side comparison is the key visual. The left panel shows the last pre-strike OSM state; the right panel shows the first post-strike state. The difference makes immediately visible how the map record changed after the strike.
+
+## Spatial Analysis
+
+- **Containment**: 41% of the latest school polygon's vertices fall inside the pre-strike barracks boundary. Before the strike, the school's location was part of an undifferentiated military-tagged area in OSM.
+- **Shared boundary nodes** (school compound): 5 node(s) shared, confirming these polygons were drawn with touching or coincident edges.
+- **Shared boundary nodes** (school barracks): 7 node(s) shared, confirming these polygons were drawn with touching or coincident edges.
+- **School area**: 10,553 sq m (latest polygon)
+- **Pre-strike barracks area**: 84,145 sq m
+- **School-to-compound distance**: 0.0 m (shared boundary)
+- **School-to-barracks distance**: 0.0 m (shared boundary)
 
 ![Conflation risk summary](results/conflation_risk.png)
 
-This figure turns the edit history into a brief interpretive summary. The current qualitative audit rating is High, driven mainly by the existence of a broader pre-strike barracks perimeter and the post-strike arrival of more explicit school and smaller military-base mapping.
+This figure turns the edit history and spatial analysis into a brief interpretive summary. The current qualitative audit rating is High, driven by the combination of pre-strike mapping gaps and post-strike clarification.
 
 ## Pre-strike State Comparison
 
@@ -83,6 +98,7 @@ The current qualitative audit rating for conflation risk is **High**. In this re
 
 ## Output Files
 
+- `results/before_after_comparison.png`
 - `results/combined_latest_overlay.png`
 - `results/combined_timeline.png`
 - `results/combined_way_history_analysis.csv`

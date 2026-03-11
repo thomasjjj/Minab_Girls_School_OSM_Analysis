@@ -1,7 +1,7 @@
 {
   "project_title": "OpenStreetMap History Audit: Shajareh Tayyebeh Girls' School and Adjacent Military Mapping in Minab, Iran",
   "strike_date": "2026-02-28T00:00:00+00:00",
-  "generated_at": "2026-03-11T11:07:28.126196+00:00",
+  "generated_at": "2026-03-11T11:29:06.578664+00:00",
   "ways": {
     "1485767423": {
       "metadata": {
@@ -30,15 +30,20 @@
         "first_perimeter_m": 1166.1605689603634,
         "latest_perimeter_m": 1166.5228173493076,
         "delta_perimeter_m": 0.362248388944181,
+        "first_area_sq_m": 54273.64134677406,
+        "latest_area_sq_m": 54102.44224073154,
         "first_version_version": 1,
         "first_version_timestamp": "2026-03-05T18:06:31+00:00",
         "first_version_perimeter_m": 1166.1605689603634,
+        "first_version_area_sq_m": 54273.64134677406,
         "last_pre_strike_version": null,
         "last_pre_strike_timestamp": null,
         "last_pre_strike_perimeter_m": null,
+        "last_pre_strike_area_sq_m": null,
         "first_post_strike_version": 1,
         "first_post_strike_timestamp": "2026-03-05T18:06:31+00:00",
-        "first_post_strike_perimeter_m": 1166.1605689603634
+        "first_post_strike_perimeter_m": 1166.1605689603634,
+        "first_post_strike_area_sq_m": 54273.64134677406
       },
       "milestones": {
         "first_version": {
@@ -92,15 +97,20 @@
         "first_perimeter_m": 445.16682141535046,
         "latest_perimeter_m": 436.1419864588573,
         "delta_perimeter_m": -9.02483495649318,
+        "first_area_sq_m": 10172.042075984575,
+        "latest_area_sq_m": 10553.495951516601,
         "first_version_version": 1,
         "first_version_timestamp": "2026-03-03T03:03:10+00:00",
         "first_version_perimeter_m": 445.16682141535046,
+        "first_version_area_sq_m": 10172.042075984575,
         "last_pre_strike_version": null,
         "last_pre_strike_timestamp": null,
         "last_pre_strike_perimeter_m": null,
+        "last_pre_strike_area_sq_m": null,
         "first_post_strike_version": 1,
         "first_post_strike_timestamp": "2026-03-03T03:03:10+00:00",
-        "first_post_strike_perimeter_m": 445.16682141535046
+        "first_post_strike_perimeter_m": 445.16682141535046,
+        "first_post_strike_area_sq_m": 10172.042075984575
       },
       "milestones": {
         "first_version": {
@@ -154,15 +164,20 @@
         "first_perimeter_m": 1251.7230493326272,
         "latest_perimeter_m": 1044.8045436008556,
         "delta_perimeter_m": -206.91850573177157,
+        "first_area_sq_m": 84145.21344921648,
+        "latest_area_sq_m": 37585.397124782176,
         "first_version_version": 1,
         "first_version_timestamp": "2021-05-14T02:59:17+00:00",
         "first_version_perimeter_m": 1251.7230493326272,
+        "first_version_area_sq_m": 84145.21344921648,
         "last_pre_strike_version": 2,
         "last_pre_strike_timestamp": "2021-05-19T02:17:22+00:00",
         "last_pre_strike_perimeter_m": 1251.7230493326272,
+        "last_pre_strike_area_sq_m": 84145.21344921648,
         "first_post_strike_version": 3,
         "first_post_strike_timestamp": "2026-03-03T03:03:10+00:00",
-        "first_post_strike_perimeter_m": 1049.2711800388092
+        "first_post_strike_perimeter_m": 1049.2711800388092,
+        "first_post_strike_area_sq_m": 38102.930132850044
       },
       "milestones": {
         "first_version": {
@@ -200,6 +215,7 @@
     "The school polygon first appears on 2026-03-03 03:03:10 UTC, after the strike divider of 2026-02-28 00:00:00 UTC.",
     "The smaller suspected compound polygon also appears only after the strike, first at 2026-03-05 18:06:31 UTC.",
     "The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.",
+    "The school and compound polygons share 5 boundary node(s), meaning they were explicitly drawn as adjacent with touching edges in the post-strike OSM record.",
     "Overall OSM conflation-risk rating from these indicators: High.",
     "Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026."
   ],
@@ -226,13 +242,36 @@
         "label": "Post-strike clarification visible",
         "status": "ambiguous",
         "detail": "The school or smaller compound polygons appear only after the strike, indicating later clarification of the OSM record."
+      },
+      {
+        "label": "School location relative to pre-strike barracks",
+        "status": "ambiguous",
+        "detail": "41% of the latest school polygon vertices fall inside the pre-strike barracks boundary."
+      },
+      {
+        "label": "Shared boundary nodes (school-compound)",
+        "status": "risk",
+        "detail": "The school and compound polygons share 5 boundary node(s), confirming they were explicitly drawn as adjacent with touching edges."
+      },
+      {
+        "label": "Shared boundary nodes (school-barracks)",
+        "status": "ambiguous",
+        "detail": "The school and barracks polygons share 7 boundary node(s)."
       }
     ],
     "latest_school_compound_distance_m": 0.0,
-    "latest_school_barracks_distance_m": 0.0
+    "latest_school_barracks_distance_m": 0.0,
+    "school_in_barracks_pre_fraction": 0.4117647058823529,
+    "shared_nodes": {
+      "school_compound": 5,
+      "school_barracks": 7
+    },
+    "school_area_sq_m": 10553.495951516601,
+    "barracks_pre_area_sq_m": 84145.21344921648
   },
   "generated_files": [
     "README.md",
+    "results/before_after_comparison.png",
     "results/combined_latest_overlay.png",
     "results/combined_timeline.png",
     "results/combined_way_history_analysis.csv",

@@ -121,6 +121,12 @@ def format_timestamp(value):
     return pd.Timestamp(value).tz_convert("UTC").strftime("%Y-%m-%d %H:%M:%S UTC")
 
 
+def format_date(value):
+    if value is None or pd.isna(value):
+        return "n/a"
+    return pd.Timestamp(value).tz_convert("UTC").strftime("%Y-%m-%d")
+
+
 def iso_timestamp(value):
     if value is None or pd.isna(value):
         return None
@@ -211,6 +217,62 @@ def polygon_area_sq_m(coords):
         x2, y2 = xy[index + 1]
         area += (x1 * y2) - (x2 * y1)
     return abs(area) / 2.0
+
+
+def point_in_polygon_xy(point, polygon_xy):
+    """Ray-casting algorithm to check if a point lies inside a polygon (2D XY)."""
+    x, y = point
+    n = len(polygon_xy)
+    inside = False
+    j = n - 1
+    for i in range(n):
+        xi, yi = polygon_xy[i]
+        xj, yj = polygon_xy[j]
+        if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / (yj - yi) + xi):
+            inside = not inside
+        j = i
+    return inside
+
+
+def polygon_contains_polygon(outer_coords, inner_coords):
+    """Check what fraction of inner polygon vertices lie inside the outer polygon."""
+    if not outer_coords or not inner_coords or len(outer_coords) < 3:
+        return None
+    all_points = outer_coords + inner_coords
+    reference = (
+        sum(p[0] for p in all_points) / len(all_points),
+        sum(p[1] for p in all_points) / len(all_points),
+    )
+    outer_xy = latlon_to_local_xy(close_coords(outer_coords), reference)
+    inner_xy = latlon_to_local_xy(inner_coords, reference)
+    inside_count = sum(1 for pt in inner_xy if point_in_polygon_xy(pt, outer_xy))
+    return inside_count / len(inner_xy) if inner_xy else None
+
+
+def find_shared_nodes(node_refs_a, node_refs_b):
+    """Return the set of node IDs shared between two way versions."""
+    return set(node_refs_a) & set(node_refs_b)
+
+
+def analyze_changeset_patterns(all_histories):
+    """Identify changesets that edited multiple ways simultaneously."""
+    changeset_edits = {}
+    for way_id, versions in all_histories.items():
+        for version in versions:
+            cs = version.get("changeset")
+            if cs is None:
+                continue
+            changeset_edits.setdefault(cs, []).append({
+                "way_id": way_id,
+                "version": version["version"],
+                "timestamp": version["timestamp"],
+                "user": version["user"],
+            })
+    multi_way_changesets = {
+        cs: edits for cs, edits in changeset_edits.items()
+        if len({e["way_id"] for e in edits}) > 1
+    }
+    return multi_way_changesets
 
 
 def minimum_vertex_distance_m(coords_a, coords_b):
@@ -479,6 +541,7 @@ def extract_major_tag_events(df):
 
 def summarise_way(df, milestones, strike_timestamp):
     perimeter_series = df["perimeter_m"].dropna()
+    area_series = df["area_sq_m"].dropna()
     summary = {
         "way_id": int(df["way_id"].iloc[0]),
         "way_label": df["way_label"].iloc[0],
@@ -499,6 +562,8 @@ def summarise_way(df, milestones, strike_timestamp):
         "first_perimeter_m": safe_float(perimeter_series.iloc[0]) if not perimeter_series.empty else None,
         "latest_perimeter_m": safe_float(perimeter_series.iloc[-1]) if not perimeter_series.empty else None,
         "delta_perimeter_m": safe_float(perimeter_series.iloc[-1] - perimeter_series.iloc[0]) if len(perimeter_series) >= 2 else 0.0,
+        "first_area_sq_m": safe_float(area_series.iloc[0]) if not area_series.empty else None,
+        "latest_area_sq_m": safe_float(area_series.iloc[-1]) if not area_series.empty else None,
     }
 
     for milestone_key in MILESTONE_ORDER:
@@ -506,6 +571,7 @@ def summarise_way(df, milestones, strike_timestamp):
         summary[f"{milestone_key}_version"] = int(row["version"]) if row is not None else None
         summary[f"{milestone_key}_timestamp"] = row["timestamp"] if row is not None else pd.NaT
         summary[f"{milestone_key}_perimeter_m"] = safe_float(row["perimeter_m"]) if row is not None else None
+        summary[f"{milestone_key}_area_sq_m"] = safe_float(row["area_sq_m"]) if row is not None and pd.notna(row.get("area_sq_m")) else None
     return summary
 
 
@@ -528,6 +594,7 @@ def milestone_record(way_id, row, milestone_key):
             "node_count": int(row["node_count"]),
             "closed_way": bool(row["closed_way"]),
             "perimeter_m": f"{row['perimeter_m']:.2f}" if pd.notna(row["perimeter_m"]) else "n/a",
+            "area_sq_m": f"{row['area_sq_m']:.0f}" if pd.notna(row.get("area_sq_m")) else "n/a",
             "edit_type": row["edit_type"],
             "tag_changes": compact_text(row["tag_changes"], 120),
             "tags": compact_text(row["tags"], 150),
@@ -748,7 +815,10 @@ def create_state_map(output_path, selection, title, subtitle):
 
     ax.set_title(title)
     if subtitle:
-        wrapped_subtitle = textwrap.fill(subtitle, width=62)
+        if "\n" in subtitle:
+            wrapped_subtitle = "\n".join(textwrap.fill(line, width=62) for line in subtitle.splitlines())
+        else:
+            wrapped_subtitle = textwrap.fill(subtitle, width=62)
         ax.text(0.01, 0.99, wrapped_subtitle, transform=ax.transAxes, fontsize=9, ha="left", va="top", bbox={"boxstyle": "round,pad=0.2", "facecolor": "white", "alpha": 0.92, "edgecolor": "#888888"})
     ax.set_xlim(0, basemap_info["width_px"])
     ax.set_ylim(basemap_info["height_px"], 0)
@@ -760,7 +830,35 @@ def create_state_map(output_path, selection, title, subtitle):
     plt.close()
 
 
-def generate_state_maps(all_geometries, all_milestones, output_dir):
+def build_combined_state_subtitle(milestone_key, all_milestones, strike_timestamp):
+    lines = [f"Strike date: {format_date(strike_timestamp)}"]
+
+    if milestone_key == "last_pre_strike":
+        lines.append("State shown: latest mapped state before the strike")
+    elif milestone_key == "first_post_strike":
+        lines.append("State shown: first mapped state after the strike")
+    else:
+        lines.append(f"State shown: {MILESTONE_LABELS[milestone_key]}")
+
+    for way_id in WAY_IDS:
+        row = all_milestones[way_id][milestone_key]
+        if row is None:
+            if milestone_key == "last_pre_strike":
+                lines.append(f"{way_short_label(way_id)}: not mapped before strike")
+            elif milestone_key == "first_post_strike":
+                lines.append(f"{way_short_label(way_id)}: no post-strike state")
+            else:
+                lines.append(f"{way_short_label(way_id)}: no state available")
+            continue
+
+        lines.append(
+            f"{way_short_label(way_id)}: v{int(row['version'])} on {format_date(row['timestamp'])}"
+        )
+
+    return "\n".join(lines)
+
+
+def generate_state_maps(all_geometries, all_milestones, strike_timestamp, output_dir):
     state_dir = output_dir / "state_maps"
     state_dir.mkdir(exist_ok=True)
     outputs = []
@@ -780,7 +878,10 @@ def generate_state_maps(all_geometries, all_milestones, output_dir):
             outputs.append(output_path)
 
         combined_path = state_dir / f"{milestone_key}_combined.png"
-        subtitle = f"Included ways: {', '.join(labels)}" if labels else ""
+        if milestone_key in {"last_pre_strike", "first_post_strike"}:
+            subtitle = build_combined_state_subtitle(milestone_key, all_milestones, strike_timestamp)
+        else:
+            subtitle = f"Included ways: {', '.join(labels)}" if labels else ""
         create_state_map(combined_path, combined_selection, f"{MILESTONE_LABELS[milestone_key]} combined map", subtitle)
         outputs.append(combined_path)
 
@@ -799,6 +900,78 @@ def generate_state_maps(all_geometries, all_milestones, output_dir):
     return outputs
 
 
+def create_before_after_comparison(all_geometries, all_milestones, output_path):
+    """Create a side-by-side figure comparing last pre-strike and first post-strike states."""
+    pre_selection = {}
+    post_selection = {}
+    for way_id in WAY_IDS:
+        pre_row = all_milestones[way_id]["last_pre_strike"]
+        post_row = all_milestones[way_id]["first_post_strike"]
+        if pre_row is not None:
+            coords = all_geometries[way_id].get(int(pre_row["version"]), [])
+            if len(coords) >= 2:
+                pre_selection[way_id] = coords
+        if post_row is not None:
+            coords = all_geometries[way_id].get(int(post_row["version"]), [])
+            if len(coords) >= 2:
+                post_selection[way_id] = coords
+
+    all_coords = []
+    for coords in list(pre_selection.values()) + list(post_selection.values()):
+        all_coords.extend(coords)
+    if not all_coords:
+        save_note_figure(output_path, "Before / after strike comparison", "No geometry available for comparison.")
+        return
+
+    bounds = expand_bounds(all_coords, padding_ratio=0.18)
+    basemap_image, basemap_info = build_basemap(bounds)
+
+    fig, (ax_pre, ax_post) = plt.subplots(1, 2, figsize=(16, 8.5))
+
+    for ax, selection, title in [
+        (ax_pre, pre_selection, "BEFORE strike (last pre-strike state)"),
+        (ax_post, post_selection, "AFTER strike (first post-strike state)"),
+    ]:
+        ax.imshow(basemap_image, origin="upper")
+        legend_handles = []
+        for way_id, coords in sorted(selection.items()):
+            plot_coords = close_coords(coords) if len(coords) >= 3 else coords
+            points = geometry_to_pixel_points(plot_coords, basemap_info)
+            xs = [p[0] for p in points]
+            ys = [p[1] for p in points]
+            color = way_color_hex(way_id)
+            if len(coords) >= 3:
+                ax.fill(xs, ys, color=color, alpha=0.16)
+            ax.plot(xs, ys, color=color, linewidth=3, alpha=0.95)
+            centroid = geometry_centroid(coords)
+            if centroid is not None:
+                x_px, y_px = latlon_to_basemap_pixels(centroid[0], centroid[1], basemap_info)
+                ax.text(x_px, y_px, way_annotation_label(way_id), fontsize=8, ha="center", va="center",
+                        bbox={"boxstyle": "round,pad=0.22", "facecolor": "white", "edgecolor": color, "alpha": 0.92})
+            legend_handles.append(Line2D([0], [0], color=color, linewidth=3, label=way_display_label(way_id)))
+
+        if not selection:
+            ax.text(0.5, 0.5, "No ways mapped at this state", fontsize=14, ha="center", va="center",
+                    transform=ax.transAxes, color="#888888",
+                    bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "alpha": 0.9})
+
+        ax.set_title(title, fontsize=11, fontweight="bold", color="#C62828" if "BEFORE" in title else "#1565C0")
+        ax.set_xlim(0, basemap_info["width_px"])
+        ax.set_ylim(basemap_info["height_px"], 0)
+        ax.set_axis_off()
+        if legend_handles:
+            ax.legend(handles=legend_handles, loc="upper right", framealpha=0.95, fontsize=8)
+
+    ways_before = len(pre_selection)
+    ways_after = len(post_selection)
+    fig.suptitle(f"Pre-strike vs post-strike OSM state ({ways_before} way(s) before, {ways_after} after)",
+                 fontsize=13, fontweight="bold", y=0.98)
+    fig.text(0.01, 0.01, "Basemap: OpenStreetMap", fontsize=8)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close()
+
+
 def plot_way_timeline(df, way_id, strike_timestamp, output_path):
     fig, ax = plt.subplots(figsize=(11, 4.8))
     ax.plot(df["timestamp"], df["version"], color=way_color_hex(way_id), linewidth=1.5, alpha=0.35)
@@ -810,11 +983,18 @@ def plot_way_timeline(df, way_id, strike_timestamp, output_path):
         ax.scatter(subset["timestamp"], subset["version"], marker=style["marker"], s=70, color=style["color"], edgecolors="white", linewidths=0.7, label=edit_type, zorder=3)
 
     milestones = get_milestones(df, strike_timestamp)
+    version_labels = {}
     for milestone_key in MILESTONE_ORDER:
         row = milestones[milestone_key]
         if row is None:
             continue
-        ax.annotate(MILESTONE_LABELS[milestone_key], xy=(row["timestamp"], row["version"]), xytext=(0, 8), textcoords="offset points", ha="center", fontsize=8, bbox={"boxstyle": "round,pad=0.18", "facecolor": "white", "edgecolor": "#999999", "alpha": 0.9})
+        v = int(row["version"])
+        if v in version_labels:
+            version_labels[v]["text"] += " / " + MILESTONE_LABELS[milestone_key]
+        else:
+            version_labels[v] = {"text": MILESTONE_LABELS[milestone_key], "row": row}
+    for entry in version_labels.values():
+        ax.annotate(entry["text"], xy=(entry["row"]["timestamp"], entry["row"]["version"]), xytext=(0, 8), textcoords="offset points", ha="center", fontsize=8, bbox={"boxstyle": "round,pad=0.18", "facecolor": "white", "edgecolor": "#999999", "alpha": 0.9})
 
     ax.axvline(strike_timestamp, color="#D32F2F", linestyle="--", linewidth=1.6, label="Strike date")
     ax.set_title(f"Edit timeline: {way_label(way_id)} (Way {way_id})")
@@ -829,8 +1009,7 @@ def plot_way_timeline(df, way_id, strike_timestamp, output_path):
     plt.close()
 
 
-def plot_combined_timeline(all_dfs, all_milestones, strike_timestamp, output_path):
-    fig, ax = plt.subplots(figsize=(12, 4.6))
+def _draw_combined_timeline_on_ax(ax, all_dfs, all_milestones, strike_timestamp, show_labels=True, label_fontsize=7):
     y_positions = {way_id: index for index, way_id in enumerate(WAY_IDS)}
 
     for way_id in WAY_IDS:
@@ -842,23 +1021,66 @@ def plot_combined_timeline(all_dfs, all_milestones, strike_timestamp, output_pat
                 continue
             ax.scatter(subset["timestamp"], [y_value] * len(subset), marker=style["marker"], color=way_color_hex(way_id), edgecolors="white", linewidths=0.7, s=90, alpha=0.95)
 
-        for milestone_key in MILESTONE_ORDER:
-            row = all_milestones[way_id][milestone_key]
-            if row is None:
-                continue
-            ax.annotate(MILESTONE_LABELS[milestone_key], xy=(row["timestamp"], y_value), xytext=(0, 11), textcoords="offset points", ha="center", fontsize=7, bbox={"boxstyle": "round,pad=0.15", "facecolor": "white", "edgecolor": "#BBBBBB", "alpha": 0.9})
-
-    way_handles = [Line2D([0], [0], marker="o", color="none", markerfacecolor=way_color_hex(way_id), markersize=9, label=way_display_label(way_id)) for way_id in WAY_IDS]
-    type_handles = [Line2D([0], [0], marker=style["marker"], color="none", markerfacecolor=style["color"], markersize=8, label=edit_type) for edit_type, style in EDIT_TYPE_STYLES.items()]
+        if show_labels:
+            # Group milestones that share the same version to avoid overlapping labels
+            version_labels = {}
+            for milestone_key in MILESTONE_ORDER:
+                row = all_milestones[way_id][milestone_key]
+                if row is None:
+                    continue
+                v = int(row["version"])
+                if v in version_labels:
+                    version_labels[v]["text"] += " / " + MILESTONE_LABELS[milestone_key]
+                else:
+                    version_labels[v] = {"text": MILESTONE_LABELS[milestone_key], "row": row}
+            for entry in version_labels.values():
+                ax.annotate(entry["text"], xy=(entry["row"]["timestamp"], y_value), xytext=(0, 11), textcoords="offset points", ha="center", fontsize=label_fontsize, bbox={"boxstyle": "round,pad=0.15", "facecolor": "white", "edgecolor": "#BBBBBB", "alpha": 0.9})
 
     ax.axvline(strike_timestamp, color="#D32F2F", linestyle="--", linewidth=1.6)
-    ax.set_title("Combined edit timeline by way")
-    ax.set_xlabel("Timestamp (UTC)")
     ax.set_yticks([y_positions[way_id] for way_id in WAY_IDS], [way_display_label(way_id) for way_id in WAY_IDS])
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d"))
     ax.grid(True, axis="x", linestyle=":", alpha=0.4)
-    ax.legend(handles=way_handles + type_handles, fontsize=8, ncol=2, loc="upper left", framealpha=0.95)
-    plt.xticks(rotation=20, ha="right")
+
+
+def plot_combined_timeline(all_dfs, all_milestones, strike_timestamp, output_path):
+    all_timestamps = pd.concat([df["timestamp"] for df in all_dfs.values()])
+    post_strike = all_timestamps[all_timestamps >= strike_timestamp]
+    has_pre_strike = (all_timestamps < strike_timestamp).any()
+    has_post_detail = len(post_strike) > 2
+
+    if has_pre_strike and has_post_detail:
+        fig, (ax_full, ax_zoom) = plt.subplots(1, 2, figsize=(16, 5.2), width_ratios=[1, 2])
+        _draw_combined_timeline_on_ax(ax_full, all_dfs, all_milestones, strike_timestamp, show_labels=False)
+        ax_full.set_title("Full history (overview)", fontsize=10)
+        ax_full.set_xlabel("Timestamp (UTC)")
+        for label in ax_full.get_xticklabels():
+            label.set_rotation(20)
+            label.set_ha("right")
+
+        _draw_combined_timeline_on_ax(ax_zoom, all_dfs, all_milestones, strike_timestamp, show_labels=True, label_fontsize=7.5)
+        zoom_start = strike_timestamp - pd.Timedelta(days=3)
+        zoom_end = post_strike.max() + pd.Timedelta(days=1)
+        ax_zoom.set_xlim(zoom_start, zoom_end)
+        ax_zoom.set_title("Post-strike detail (zoomed)", fontsize=10)
+        ax_zoom.set_xlabel("Timestamp (UTC)")
+        for label in ax_zoom.get_xticklabels():
+            label.set_rotation(20)
+            label.set_ha("right")
+
+        way_handles = [Line2D([0], [0], marker="o", color="none", markerfacecolor=way_color_hex(way_id), markersize=9, label=way_display_label(way_id)) for way_id in WAY_IDS]
+        type_handles = [Line2D([0], [0], marker=style["marker"], color="none", markerfacecolor=style["color"], markersize=8, label=edit_type) for edit_type, style in EDIT_TYPE_STYLES.items()]
+        ax_zoom.legend(handles=way_handles + type_handles, fontsize=7.5, ncol=2, loc="upper left", framealpha=0.95)
+    else:
+        fig, ax = plt.subplots(figsize=(12, 4.6))
+        _draw_combined_timeline_on_ax(ax, all_dfs, all_milestones, strike_timestamp, show_labels=True)
+        ax.set_title("Combined edit timeline by way")
+        ax.set_xlabel("Timestamp (UTC)")
+        way_handles = [Line2D([0], [0], marker="o", color="none", markerfacecolor=way_color_hex(way_id), markersize=9, label=way_display_label(way_id)) for way_id in WAY_IDS]
+        type_handles = [Line2D([0], [0], marker=style["marker"], color="none", markerfacecolor=style["color"], markersize=8, label=edit_type) for edit_type, style in EDIT_TYPE_STYLES.items()]
+        ax.legend(handles=way_handles + type_handles, fontsize=8, ncol=2, loc="upper left", framealpha=0.95)
+        plt.xticks(rotation=20, ha="right")
+
+    fig.suptitle("Combined edit timeline by way", fontsize=13, fontweight="bold", y=1.01)
     plt.tight_layout()
     plt.savefig(output_path, dpi=200, bbox_inches="tight")
     plt.close()
@@ -866,11 +1088,31 @@ def plot_combined_timeline(all_dfs, all_milestones, strike_timestamp, output_pat
 
 def plot_perimeter_timeseries(all_dfs, strike_timestamp, output_path):
     fig, ax = plt.subplots(figsize=(11, 5))
+    gap_threshold = pd.Timedelta(days=90)
+
     for way_id in WAY_IDS:
-        series = all_dfs[way_id].dropna(subset=["perimeter_m"])
+        series = all_dfs[way_id].dropna(subset=["perimeter_m"]).sort_values("timestamp")
         if series.empty:
             continue
-        ax.plot(series["timestamp"], series["perimeter_m"], marker="o", linewidth=2, markersize=5, color=way_color_hex(way_id), label=way_display_label(way_id))
+        timestamps = series["timestamp"].values
+        perimeters = series["perimeter_m"].values
+        color = way_color_hex(way_id)
+
+        # Split into segments where gaps > threshold to avoid misleading interpolation
+        segment_start = 0
+        for i in range(1, len(timestamps)):
+            gap = pd.Timestamp(timestamps[i]) - pd.Timestamp(timestamps[i - 1])
+            if gap > gap_threshold:
+                seg_t = timestamps[segment_start:i]
+                seg_p = perimeters[segment_start:i]
+                ax.plot(seg_t, seg_p, marker="o", linewidth=2, markersize=5, color=color)
+                # Draw dashed line across the gap to show discontinuity
+                ax.plot([timestamps[i - 1], timestamps[i]], [perimeters[i - 1], perimeters[i]],
+                        linewidth=1, linestyle=":", color=color, alpha=0.4)
+                segment_start = i
+        seg_t = timestamps[segment_start:]
+        seg_p = perimeters[segment_start:]
+        ax.plot(seg_t, seg_p, marker="o", linewidth=2, markersize=5, color=color, label=way_display_label(way_id))
 
     ax.axvline(strike_timestamp, color="#D32F2F", linestyle="--", linewidth=1.6, label="Strike date")
     ax.set_title("Perimeter / length evolution by way")
@@ -1097,7 +1339,7 @@ def create_way_history_animation(all_histories, all_geometries, strike_timestamp
     return output_path
 
 
-def build_conflation_assessment(all_milestones, all_geometries):
+def build_conflation_assessment(all_milestones, all_geometries, all_histories=None):
     school_id = 1484791929
     compound_id = 1485767423
     barracks_id = 942760673
@@ -1143,6 +1385,48 @@ def build_conflation_assessment(all_milestones, all_geometries):
 
     school_compound_distance = minimum_vertex_distance_m(latest_school_coords, latest_compound_coords)
     school_barracks_distance = minimum_vertex_distance_m(latest_school_coords, latest_barracks_coords)
+
+    # Spatial containment analysis: would the school location have fallen inside the pre-strike barracks?
+    school_in_barracks_pre = None
+    if barracks_pre is not None and latest_school_coords:
+        barracks_pre_coords = all_geometries[barracks_id].get(int(barracks_pre["version"]), [])
+        if barracks_pre_coords and len(barracks_pre_coords) >= 3:
+            school_in_barracks_pre = polygon_contains_polygon(barracks_pre_coords, latest_school_coords)
+            if school_in_barracks_pre is not None and school_in_barracks_pre > 0.5:
+                pct = int(school_in_barracks_pre * 100)
+                indicators.append({"label": "School location inside pre-strike barracks", "status": "risk", "detail": f"{pct}% of the latest school polygon vertices fall inside the pre-strike barracks boundary, meaning the school area was subsumed within the military perimeter before the strike."})
+                score += 10
+            elif school_in_barracks_pre is not None:
+                pct = int(school_in_barracks_pre * 100)
+                indicators.append({"label": "School location relative to pre-strike barracks", "status": "ambiguous", "detail": f"{pct}% of the latest school polygon vertices fall inside the pre-strike barracks boundary."})
+
+    # Shared-node analysis: do the post-strike ways share boundary nodes?
+    shared_nodes_info = {}
+    if all_histories is not None:
+        latest_refs = {}
+        for way_id in [school_id, compound_id, barracks_id]:
+            versions = all_histories.get(way_id, [])
+            if versions:
+                latest_refs[way_id] = versions[-1]["node_refs"]
+        if school_id in latest_refs and compound_id in latest_refs:
+            shared = find_shared_nodes(latest_refs[school_id], latest_refs[compound_id])
+            shared_nodes_info["school_compound"] = len(shared)
+            if shared:
+                indicators.append({"label": "Shared boundary nodes (school-compound)", "status": "risk", "detail": f"The school and compound polygons share {len(shared)} boundary node(s), confirming they were explicitly drawn as adjacent with touching edges."})
+        if school_id in latest_refs and barracks_id in latest_refs:
+            shared = find_shared_nodes(latest_refs[school_id], latest_refs[barracks_id])
+            shared_nodes_info["school_barracks"] = len(shared)
+            if shared:
+                indicators.append({"label": "Shared boundary nodes (school-barracks)", "status": "ambiguous", "detail": f"The school and barracks polygons share {len(shared)} boundary node(s)."})
+
+    # Area metrics
+    school_area = polygon_area_sq_m(latest_school_coords) if latest_school_coords and len(latest_school_coords) >= 3 else None
+    barracks_pre_area = None
+    if barracks_pre is not None:
+        barracks_pre_coords = all_geometries[barracks_id].get(int(barracks_pre["version"]), [])
+        if barracks_pre_coords and len(barracks_pre_coords) >= 3:
+            barracks_pre_area = polygon_area_sq_m(barracks_pre_coords)
+
     score = max(0, min(100, score))
     rating = "High" if score >= 65 else "Moderate" if score >= 40 else "Low"
 
@@ -1152,37 +1436,62 @@ def build_conflation_assessment(all_milestones, all_geometries):
         "indicators": indicators,
         "latest_school_compound_distance_m": safe_float(school_compound_distance),
         "latest_school_barracks_distance_m": safe_float(school_barracks_distance),
+        "school_in_barracks_pre_fraction": safe_float(school_in_barracks_pre),
+        "shared_nodes": shared_nodes_info,
+        "school_area_sq_m": safe_float(school_area),
+        "barracks_pre_area_sq_m": safe_float(barracks_pre_area),
     }
 
 
 def plot_conflation_risk(conflation, output_path):
-    fig, ax = plt.subplots(figsize=(11, 6.5))
+    num_indicators = len(conflation["indicators"])
+    fig_height = max(7.5, 4.0 + num_indicators * 1.0)
+    fig, ax = plt.subplots(figsize=(12, fig_height))
     ax.axis("off")
 
     rating_color = {"Low": "#2E7D32", "Moderate": "#F9A825", "High": "#C62828"}[conflation["overall_rating"]]
-    rating_box = FancyBboxPatch((0.03, 0.54), 0.28, 0.38, boxstyle="round,pad=0.02,rounding_size=0.02", facecolor=rating_color, edgecolor="#333333", linewidth=1.2, transform=ax.transAxes)
+    box_top = 0.92
+    box_height = 0.18
+    rating_box = FancyBboxPatch((0.03, box_top - box_height), 0.28, box_height, boxstyle="round,pad=0.02,rounding_size=0.02", facecolor=rating_color, edgecolor="#333333", linewidth=1.2, transform=ax.transAxes)
     ax.add_patch(rating_box)
-    ax.text(0.17, 0.81, "Conflation Risk", fontsize=15, color="white", fontweight="bold", ha="center", transform=ax.transAxes)
-    ax.text(0.17, 0.69, conflation["overall_rating"], fontsize=26, color="white", fontweight="bold", ha="center", transform=ax.transAxes)
-    ax.text(0.17, 0.58, "Qualitative audit rating", fontsize=14, color="white", ha="center", transform=ax.transAxes)
+    ax.text(0.17, box_top - 0.04, "Conflation Risk", fontsize=15, color="white", fontweight="bold", ha="center", transform=ax.transAxes)
+    ax.text(0.17, box_top - 0.10, conflation["overall_rating"], fontsize=26, color="white", fontweight="bold", ha="center", transform=ax.transAxes)
+    ax.text(0.17, box_top - 0.16, "Qualitative audit rating", fontsize=11, color="white", ha="center", transform=ax.transAxes)
 
     status_colors = {"clear": "#2E7D32", "ambiguous": "#F9A825", "risk": "#C62828", "unknown": "#607D8B"}
-    ax.text(0.36, 0.93, "Traffic-light summary of map clarity before and after 28 February 2026", fontsize=12, fontweight="bold", ha="left", transform=ax.transAxes)
+    status_symbols = {"clear": "CLEAR", "ambiguous": "MIXED", "risk": "RISK", "unknown": "N/A"}
+    ax.text(0.36, 0.93, "Traffic-light indicators of pre-strike map clarity", fontsize=12, fontweight="bold", ha="left", transform=ax.transAxes)
 
-    y = 0.85
+    indicator_step = min(0.11, 0.80 / max(num_indicators, 1))
+    y = 0.86
     for indicator in conflation["indicators"]:
-        ax.scatter([0.38], [y], s=120, color=status_colors[indicator["status"]], transform=ax.transAxes)
-        ax.text(0.41, y + 0.02, indicator["label"], fontsize=11, fontweight="bold", ha="left", va="top", transform=ax.transAxes)
-        ax.text(0.41, y - 0.01, textwrap.fill(indicator["detail"], 70), fontsize=10, ha="left", va="top", transform=ax.transAxes)
-        y -= 0.14
+        color = status_colors[indicator["status"]]
+        ax.scatter([0.37], [y], s=160, color=color, transform=ax.transAxes, zorder=5)
+        ax.text(0.37, y, status_symbols[indicator["status"]], fontsize=5.5, color="white", fontweight="bold", ha="center", va="center", transform=ax.transAxes, zorder=6)
+        ax.text(0.40, y + 0.015, indicator["label"], fontsize=10.5, fontweight="bold", ha="left", va="top", transform=ax.transAxes)
+        ax.text(0.40, y - 0.012, textwrap.fill(indicator["detail"], 72), fontsize=9, ha="left", va="top", transform=ax.transAxes, color="#333333")
+        y -= indicator_step
 
+    # Spatial metrics footer
     footer_lines = []
     if conflation["latest_school_compound_distance_m"] is not None:
-        footer_lines.append(f"Latest school-to-compound minimum vertex distance: {conflation['latest_school_compound_distance_m']:.1f} m")
+        d = conflation["latest_school_compound_distance_m"]
+        footer_lines.append(f"School-to-compound vertex distance: {d:.1f} m" + (" (shared boundary)" if d < 1.0 else ""))
     if conflation["latest_school_barracks_distance_m"] is not None:
-        footer_lines.append(f"Latest school-to-barracks minimum vertex distance: {conflation['latest_school_barracks_distance_m']:.1f} m")
+        d = conflation["latest_school_barracks_distance_m"]
+        footer_lines.append(f"School-to-barracks vertex distance: {d:.1f} m" + (" (shared boundary)" if d < 1.0 else ""))
+    if conflation.get("school_area_sq_m") is not None:
+        footer_lines.append(f"School polygon area: {conflation['school_area_sq_m']:,.0f} sq m")
+    if conflation.get("barracks_pre_area_sq_m") is not None:
+        footer_lines.append(f"Pre-strike barracks area: {conflation['barracks_pre_area_sq_m']:,.0f} sq m")
+    frac = conflation.get("school_in_barracks_pre_fraction")
+    if frac is not None:
+        footer_lines.append(f"School vertices inside pre-strike barracks: {int(frac * 100)}%")
+    for key, count in conflation.get("shared_nodes", {}).items():
+        footer_lines.append(f"Shared boundary nodes ({key.replace('_', '-')}): {count}")
     if footer_lines:
-        ax.text(0.03, 0.12, "\n".join(footer_lines), fontsize=10, ha="left", transform=ax.transAxes)
+        ax.text(0.03, max(0.02, y - 0.04), "\n".join(footer_lines), fontsize=9.5, ha="left", va="top", transform=ax.transAxes, family="monospace",
+                bbox={"boxstyle": "round,pad=0.3", "facecolor": "#F5F5F5", "edgecolor": "#CCCCCC", "alpha": 0.95})
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=200, bbox_inches="tight")
@@ -1203,6 +1512,8 @@ def build_way_narrative(summary, strike_timestamp):
 
     if summary["latest_perimeter_m"] is not None:
         sentences.append(f"Its perimeter / line length changes from {summary['first_perimeter_m']:.2f} m to {summary['latest_perimeter_m']:.2f} m.")
+    if summary.get("latest_area_sq_m") is not None:
+        sentences.append(f"Its latest area is approximately {summary['latest_area_sq_m']:,.0f} sq m.")
     if summary["major_tag_events"]:
         sentences.append(f"Major semantic edits: {summary['major_tag_events']}.")
     return " ".join(sentences)
@@ -1226,6 +1537,15 @@ def generate_key_findings(summary_by_way, conflation, strike_timestamp):
     )
     if barracks["existed_pre_strike"]:
         findings.append("The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.")
+
+    frac = conflation.get("school_in_barracks_pre_fraction")
+    if frac is not None and frac > 0.5:
+        findings.append(f"Spatial containment check: {int(frac * 100)}% of the school's vertices fall inside the pre-strike barracks boundary, confirming the school location was subsumed within the undifferentiated military perimeter before the strike.")
+
+    school_compound_shared = conflation.get("shared_nodes", {}).get("school_compound", 0)
+    if school_compound_shared > 0:
+        findings.append(f"The school and compound polygons share {school_compound_shared} boundary node(s), meaning they were explicitly drawn as adjacent with touching edges in the post-strike OSM record.")
+
     findings.append(f"Overall OSM conflation-risk rating from these indicators: {conflation['overall_rating']}.")
     findings.append("Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026.")
     return findings
@@ -1301,6 +1621,16 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
                 f"{latest_distance:.1f} m."
             )
 
+    pre_strike_date_text = (
+        f"Barracks last pre-strike state: {format_timestamp(barracks['last_pre_strike_timestamp'])}; "
+        f"School: not mapped before strike; Military base: not mapped before strike."
+    )
+    first_post_date_text = (
+        f"Barracks first post-strike state: {format_timestamp(barracks['first_post_strike_timestamp'])}; "
+        f"School first post-strike state: {format_timestamp(school['first_post_strike_timestamp'])}; "
+        f"Military base first post-strike state: {format_timestamp(compound['first_post_strike_timestamp'])}."
+    )
+
     important_outputs = sorted(repo_relative(path, root_dir) for path in generated_files if path.suffix.lower() in {".csv", ".json", ".txt", ".png", ".gif", ".md"})
     lines = [
         f"# {PROJECT_TITLE}",
@@ -1356,15 +1686,44 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
             "",
             f"![Last pre-strike combined map]({repo_relative(output_dir / 'state_maps' / 'last_pre_strike_combined.png', root_dir)})",
             "",
-            f"This is the key pre-strike reference image. In the current history, {pre_strike_absence_text} are not yet present here as separate ways, while the broader barracks boundary remains the main military-tagged pre-strike polygon.",
+            f"This is the key pre-strike reference image. In the current history, {pre_strike_absence_text} are not yet present here as separate ways, while the broader barracks boundary remains the main military-tagged pre-strike polygon. {pre_strike_date_text}",
             "",
             f"![First post-strike combined map]({repo_relative(output_dir / 'state_maps' / 'first_post_strike_combined.png', root_dir)})",
             "",
-            "This panel shows the first available post-strike state for each way. It makes the map clarification visible by showing when the school and smaller military-base polygons first appear as distinct objects in OSM.",
+            f"This panel shows the first available post-strike state for each way. It makes the map clarification visible by showing when the school and smaller military-base polygons first appear as distinct objects in OSM. {first_post_date_text}",
+            "",
+            f"![Before vs after comparison]({repo_relative(output_dir / 'before_after_comparison.png', root_dir)})",
+            "",
+            "This side-by-side comparison is the key visual. The left panel shows the last pre-strike OSM state; the right panel shows the first post-strike state. The difference makes immediately visible how the map record changed after the strike.",
+            "",
+            "## Spatial Analysis",
+            "",
+        ]
+    )
+
+    frac = conflation.get("school_in_barracks_pre_fraction")
+    if frac is not None and frac > 0.0:
+        lines.append(f"- **Containment**: {int(frac * 100)}% of the latest school polygon's vertices fall inside the pre-strike barracks boundary. Before the strike, the school's location was part of an undifferentiated military-tagged area in OSM.")
+    for key, count in conflation.get("shared_nodes", {}).items():
+        if count > 0:
+            lines.append(f"- **Shared boundary nodes** ({key.replace('_', ' ')}): {count} node(s) shared, confirming these polygons were drawn with touching or coincident edges.")
+    if conflation.get("school_area_sq_m") is not None:
+        lines.append(f"- **School area**: {conflation['school_area_sq_m']:,.0f} sq m (latest polygon)")
+    if conflation.get("barracks_pre_area_sq_m") is not None:
+        lines.append(f"- **Pre-strike barracks area**: {conflation['barracks_pre_area_sq_m']:,.0f} sq m")
+    if conflation.get("latest_school_compound_distance_m") is not None:
+        d = conflation["latest_school_compound_distance_m"]
+        lines.append(f"- **School-to-compound distance**: {d:.1f} m" + (" (shared boundary)" if d < 1.0 else ""))
+    if conflation.get("latest_school_barracks_distance_m") is not None:
+        d = conflation["latest_school_barracks_distance_m"]
+        lines.append(f"- **School-to-barracks distance**: {d:.1f} m" + (" (shared boundary)" if d < 1.0 else ""))
+
+    lines.extend(
+        [
             "",
             f"![Conflation risk summary]({repo_relative(output_dir / 'conflation_risk.png', root_dir)})",
             "",
-            f"This figure turns the edit history into a brief interpretive summary. The current qualitative audit rating is {conflation['overall_rating']}, driven mainly by the existence of a broader pre-strike barracks perimeter and the post-strike arrival of more explicit school and smaller military-base mapping.",
+            f"This figure turns the edit history and spatial analysis into a brief interpretive summary. The current qualitative audit rating is {conflation['overall_rating']}, driven by the combination of pre-strike mapping gaps and post-strike clarification.",
             "",
             "## Pre-strike State Comparison",
             "",
@@ -1429,7 +1788,7 @@ def build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_fin
     }
 
 
-def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation):
+def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns=None):
     lines = [
         PROJECT_TITLE,
         "=" * 100,
@@ -1440,15 +1799,40 @@ def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, c
     ]
     for finding in key_findings:
         lines.append(f"- {finding}")
-    lines.extend(["", "CONFLATION RISK", "-" * 100, f"Overall rating: {conflation['overall_rating']}"])
+    lines.extend(["", "CONFLATION RISK", "-" * 100, f"Overall rating: {conflation['overall_rating']} (score: {conflation['score']}/100)"])
     for indicator in conflation["indicators"]:
-        lines.append(f"- {indicator['label']}: {indicator['detail']}")
+        lines.append(f"- [{indicator['status'].upper()}] {indicator['label']}: {indicator['detail']}")
+
+    # Spatial metrics
+    lines.extend(["", "SPATIAL METRICS", "-" * 100])
+    if conflation.get("school_area_sq_m") is not None:
+        lines.append(f"- School polygon area (latest): {conflation['school_area_sq_m']:,.0f} sq m")
+    if conflation.get("barracks_pre_area_sq_m") is not None:
+        lines.append(f"- Pre-strike barracks area: {conflation['barracks_pre_area_sq_m']:,.0f} sq m")
+    if conflation.get("school_in_barracks_pre_fraction") is not None:
+        lines.append(f"- School vertices inside pre-strike barracks: {int(conflation['school_in_barracks_pre_fraction'] * 100)}%")
+    if conflation.get("latest_school_compound_distance_m") is not None:
+        lines.append(f"- School-to-compound minimum vertex distance: {conflation['latest_school_compound_distance_m']:.1f} m")
+    if conflation.get("latest_school_barracks_distance_m") is not None:
+        lines.append(f"- School-to-barracks minimum vertex distance: {conflation['latest_school_barracks_distance_m']:.1f} m")
+    for key, count in conflation.get("shared_nodes", {}).items():
+        lines.append(f"- Shared boundary nodes ({key.replace('_', '-')}): {count}")
+
+    # Changeset patterns
+    if changeset_patterns:
+        lines.extend(["", "MULTI-WAY CHANGESETS (same editor, same changeset)", "-" * 100])
+        for cs_id, edits in sorted(changeset_patterns.items()):
+            user = edits[0]["user"]
+            ts = format_timestamp(edits[0]["timestamp"])
+            way_list = ", ".join(f"{way_label(e['way_id'])} v{e['version']}" for e in edits)
+            lines.append(f"  Changeset {cs_id} by {user} at {ts}: {way_list}")
+
     lines.extend(["", "WAY NARRATIVES", "-" * 100])
     for way_id in WAY_IDS:
         lines.append(f"{way_label(way_id)} ({way_id})")
         lines.append(textwrap.fill(build_way_narrative(summary_by_way[way_id], strike_timestamp), width=100))
         lines.append("")
-    lines.extend(["MILESTONE COMPARISON", "-" * 100, milestone_df.to_string(index=False), "", "SUMMARY TABLE", "-" * 100, summary_df.to_string(index=False), "", "COMBINED EDIT TABLE", "-" * 100, combined_df[["way_id", "way_label", "version", "timestamp", "changeset", "user", "node_count", "closed_way", "perimeter_m", "edit_type", "tag_changes", "geometry_reconstruction"]].to_string(index=False), ""])
+    lines.extend(["MILESTONE COMPARISON", "-" * 100, milestone_df.to_string(index=False), "", "SUMMARY TABLE", "-" * 100, summary_df.to_string(index=False), "", "COMBINED EDIT TABLE", "-" * 100, combined_df[["way_id", "way_label", "version", "timestamp", "changeset", "user", "node_count", "closed_way", "perimeter_m", "area_sq_m", "edit_type", "tag_changes", "geometry_reconstruction"]].to_string(index=False), ""])
     output_path.write_text("\n".join(lines), encoding="utf-8")
 
 
@@ -1531,9 +1915,15 @@ def run():
         if animation_result is not None:
             generated_files.append(animation_result)
 
-    generated_files.extend(generate_state_maps(all_geometries, all_milestones, output_dir))
+    generated_files.extend(generate_state_maps(all_geometries, all_milestones, strike_timestamp, output_dir))
 
-    conflation = build_conflation_assessment(all_milestones, all_geometries)
+    before_after_path = output_dir / "before_after_comparison.png"
+    create_before_after_comparison(all_geometries, all_milestones, before_after_path)
+    generated_files.append(before_after_path)
+
+    changeset_patterns = analyze_changeset_patterns(all_histories)
+
+    conflation = build_conflation_assessment(all_milestones, all_geometries, all_histories)
     conflation_plot = output_dir / "conflation_risk.png"
     plot_conflation_risk(conflation, conflation_plot)
     generated_files.append(conflation_plot)
@@ -1541,7 +1931,7 @@ def run():
     key_findings = generate_key_findings(summary_by_way, conflation, strike_timestamp)
 
     results_txt = output_dir / "results.txt"
-    write_results_txt(results_txt, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation)
+    write_results_txt(results_txt, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns)
     generated_files.append(results_txt)
 
     readme_path = generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files)
