@@ -32,6 +32,30 @@ SPATIAL METRICS
 - Shared boundary nodes (school-compound): 5
 - Shared boundary nodes (school-barracks): 7
 
+LOCAL OSM CONTEXT (CDE INFORMATION ENVIRONMENT)
+----------------------------------------------------------------------------------------------------
+- Analysis centroid: 27.10891, 57.08449
+- Pre-strike query date: 2021-05-19T02:17:22Z
+- Pre-strike features within 500m: 151
+- Current features within 500m: 1021
+- Features added after strike: 890
+- Features removed after strike: 20
+
+  Pre-strike features by category:
+    Civilian general: 4
+    Military / security: 1
+    Government / institutional: 3
+    Infrastructure / access: 18
+    Unknown / unclassified: 125
+  Current features by category:
+    Civilian sensitive: 2
+    Civilian general: 12
+    Military / security: 14
+    Government / institutional: 4
+    Infrastructure / access: 142
+    Unknown / unclassified: 847
+  [RISK] Pre-strike OSM record contained ZERO civilian-sensitive features.
+
 MULTI-WAY CHANGESETS (same editor, same changeset)
 ----------------------------------------------------------------------------------------------------
   Changeset 179281404 by nickvet419 at 2026-03-03 03:03:10 UTC: Shajareh Tayyebeh girls' school v1, Sayyid al-Shuhada-Asif barracks area v3

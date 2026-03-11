@@ -4,12 +4,6 @@
 
 This repository is a post-incident OpenStreetMap history review focused on the mapping state around the strike on the Shajareh Tayyebeh girls' school in Minab on 28 February 2026. The outputs are intended for forensic, journalistic, and technical review, not operational analysis.
 
-This project began as an experiment to test the claim that the strike may have been carried out with the assistance of AI. My initial aim was to see whether, using AI, I could reproduce the same targeting recommendation. I quickly ran into a problem: once the strike had happened, recent reporting heavily covered the incident, which meant the model already “knew” there was a school at the site. Even when I tried to impose a strict cutoff date, it was difficult to create anything that felt like a credible simulation of a pre-strike targeting attempt.
-
-I therefore changed approach. Instead of trying to simulate the targeting decision directly, I decided to analyse how the information appeared in OpenStreetMap, a widely used open mapping platform. This made it possible to scrape and collect the history of edits to the relevant ways and to examine what information was theoretically available to a system at the time, whether that system was a human analyst, an AI model, or some combination of the two.
-
-What emerges is striking: there appears to be a clear surge in information after the strike that differentiates the school from the nearby military base, whereas the picture before and up to the strike is far less clear. That does not prove OpenStreetMap was used in any targeting or collateral damage estimation process, but it does provide a useful test case for examining how unclear or incomplete open-source mapping might contribute to misidentification when proper verification and due diligence are missing.
-
 ## Methodology
 
 OpenStreetMap (OSM) is a collaborative map database that stores geographic features as editable objects with version history. A **way** in OSM is an ordered list of nodes: it can represent a line, such as a road or wall, or a closed polygon, such as a school or compound perimeter.
@@ -83,6 +77,55 @@ This side-by-side comparison is the key visual. The left panel shows the last pr
 
 This figure turns the edit history and spatial analysis into a brief interpretive summary. The current qualitative audit rating is High, driven by the combination of pre-strike mapping gaps and post-strike clarification.
 
+## Local OSM Context and CDE-Relevant Information Environment
+
+This section reconstructs the local OpenStreetMap information environment within 500m of the analysis centroid (27.10891, 57.08449) to test what a collateral damage estimation (CDE) process relying on OSM data might have seen before and after the strike.
+
+- **Pre-strike query date**: 2021-05-19T02:17:22Z
+- **Pre-strike features found**: 151 (of which 0 civilian-sensitive, 1 military/security)
+- **Current features found**: 1021 (of which 2 civilian-sensitive, 14 military/security)
+- **Features added after strike**: 890
+- **Features removed after strike**: 20
+
+**Would a pre-strike CDE query have flagged civilian-sensitive features nearby?** **No**: zero civilian-sensitive features were present in the pre-strike OSM record within 500m. The current record now shows 2.
+
+![Pre-strike local context](results/local_context_prestrike.png)
+
+This map shows the 151 OSM features within 500m of the analysis centroid as recorded before the strike, coloured by CDE category. Concentric circles mark the 50m, 100m, 250m, and 500m radius bands.
+
+![Current local context](results/local_context_current.png)
+
+The same view using the current OSM record, showing 1021 features. Comparing the two maps reveals how the local information environment has changed since the strike.
+
+![Local context comparison](results/local_context_comparison.png)
+
+This comparison panel combines side-by-side maps with a feature density chart and CDE summary. The density chart shows feature counts by category for pre-strike versus current, while the summary panel directly addresses whether the pre-strike OSM record contained enough information to flag civilian presence.
+
+### Named features near the site
+
+| Name | Pre-strike | Current |
+| --- | --- | --- |
+| Shajareh Tayyebeh girls' elementary school |  | civilian_sensitive (88m) |
+| آهن آلات زارع | civilian_general (471m) | civilian_general (447m) |
+| آهن آلات شیخ آبادی |  | civilian_general (369m) |
+| آهن آلات و مصالح ساختمانی محمودی | civilian_general (222m) | civilian_general (239m) |
+| اداره آب و فاضلاب |  | government_institutional (292m) |
+| اداره آب و فاضلاب روستایی | government_institutional (318m) |  |
+| اداره جهاد کشاورزی میناب | government_institutional (329m) | government_institutional (329m) |
+| اداره شیلات میناب |  | government_institutional (357m) |
+| بلوار رسالت | infrastructure_access (266m) | infrastructure_access (264m) |
+| تعمیرگاه جنوب |  | civilian_general (498m) |
+| جاده ۹۱ | unknown (367228m) |  |
+| داروخانه دکتر محمد قادری |  | civilian_general (146m) |
+| دانش | infrastructure_access (1088m) |  |
+| رسالت دهم |  | infrastructure_access (270m) |
+| رسالت دوازدهم |  | infrastructure_access (436m) |
+| رسالت نهم |  | infrastructure_access (168m) |
+| رسالت هشتم |  | infrastructure_access (368m) |
+| رسالت یازدهم |  | infrastructure_access (378m) |
+| سوپرمارکت مالک حسن پور |  | civilian_general (458m) |
+| سید الشهدا-عاصف |  | military_security (65m) |
+
 ## Pre-strike State Comparison
 
 | Way | Last pre-strike | First post-strike | Latest |
@@ -109,7 +152,14 @@ The current qualitative audit rating for conflation risk is **High**. In this re
 - `results/combined_timeline.png`
 - `results/combined_way_history_analysis.csv`
 - `results/conflation_risk.png`
+- `results/local_context_comparison.png`
+- `results/local_context_current.png`
+- `results/local_context_prestrike.png`
 - `results/milestone_state_comparison.csv`
+- `results/nearby_features_comparison.csv`
+- `results/nearby_features_current.csv`
+- `results/nearby_features_prestrike.csv`
+- `results/nearby_features_summary.json`
 - `results/perimeter_comparison.png`
 - `results/results.txt`
 - `results/state_maps/first_post_strike_combined.png`

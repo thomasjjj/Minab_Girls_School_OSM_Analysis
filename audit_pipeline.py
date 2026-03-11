@@ -3,6 +3,7 @@ import io
 import json
 import math
 import textwrap
+import time
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -73,6 +74,77 @@ EDIT_TYPE_STYLES = {
     "visibility change": {"marker": "X", "color": "#C62828"},
     "no structural change": {"marker": "o", "color": "#6D4C41"},
 }
+
+LOCAL_CONTEXT_RADII_M = [50, 100, 250, 500]
+LOCAL_CONTEXT_QUERY_RADIUS_M = 500
+OVERPASS_API_URL = "https://overpass-api.de/api/interpreter"
+
+CDE_CATEGORIES = {
+    "civilian_sensitive": {
+        "label": "Civilian sensitive",
+        "color": "#E53935",
+        "match_tags": {
+            "amenity": {"school", "kindergarten", "hospital", "clinic", "doctors",
+                        "pharmacy", "place_of_worship", "community_centre",
+                        "social_facility", "childcare", "nursing_home", "library"},
+            "building": {"school", "hospital", "church", "mosque", "temple",
+                         "kindergarten", "chapel"},
+            "healthcare": None,
+            "social_facility": None,
+        },
+    },
+    "civilian_general": {
+        "label": "Civilian general",
+        "color": "#FB8C00",
+        "match_tags": {
+            "amenity": {"marketplace", "bank", "fuel", "restaurant", "cafe",
+                        "parking", "post_office", "bus_station"},
+            "shop": None,
+            "building": {"residential", "apartments", "house", "commercial", "retail"},
+            "landuse": {"residential", "commercial", "retail"},
+            "tourism": None,
+        },
+    },
+    "military_security": {
+        "label": "Military / security",
+        "color": "#1565C0",
+        "match_tags": {
+            "military": None,
+            "landuse": {"military"},
+            "building": {"military", "barracks"},
+            "amenity": {"police"},
+        },
+    },
+    "government_institutional": {
+        "label": "Government / institutional",
+        "color": "#7B1FA2",
+        "match_tags": {
+            "amenity": {"townhall", "courthouse", "prison", "fire_station"},
+            "office": {"government"},
+            "building": {"government", "public"},
+            "government": None,
+        },
+    },
+    "infrastructure_access": {
+        "label": "Infrastructure / access",
+        "color": "#00897B",
+        "match_tags": {
+            "highway": {"primary", "secondary", "tertiary", "residential",
+                        "service", "track"},
+            "power": None,
+            "man_made": {"water_tower", "tower", "mast"},
+            "barrier": {"wall", "fence", "gate"},
+        },
+    },
+}
+CDE_CATEGORY_ORDER = [
+    "civilian_sensitive", "civilian_general", "military_security",
+    "government_institutional", "infrastructure_access", "unknown",
+]
+CDE_CATEGORY_COLORS = {cat: info["color"] for cat, info in CDE_CATEGORIES.items()}
+CDE_CATEGORY_COLORS["unknown"] = "#9E9E9E"
+CDE_CATEGORY_LABELS = {cat: info["label"] for cat, info in CDE_CATEGORIES.items()}
+CDE_CATEGORY_LABELS["unknown"] = "Unknown / unclassified"
 
 SESSION = requests.Session()
 SESSION.headers.update({"User-Agent": "IranGirlsSchoolHistoryAudit/2.0"})
@@ -900,10 +972,12 @@ def generate_state_maps(all_geometries, all_milestones, strike_timestamp, output
     return outputs
 
 
-def create_before_after_comparison(all_geometries, all_milestones, output_path):
+def create_before_after_comparison(all_geometries, all_milestones, strike_timestamp, output_path):
     """Create a side-by-side figure comparing last pre-strike and first post-strike states."""
     pre_selection = {}
     post_selection = {}
+    pre_dates = {}
+    post_dates = {}
     for way_id in WAY_IDS:
         pre_row = all_milestones[way_id]["last_pre_strike"]
         post_row = all_milestones[way_id]["first_post_strike"]
@@ -911,10 +985,16 @@ def create_before_after_comparison(all_geometries, all_milestones, output_path):
             coords = all_geometries[way_id].get(int(pre_row["version"]), [])
             if len(coords) >= 2:
                 pre_selection[way_id] = coords
+            pre_dates[way_id] = f"v{int(pre_row['version'])} ({format_date(pre_row['timestamp'])})"
+        else:
+            pre_dates[way_id] = "not mapped"
         if post_row is not None:
             coords = all_geometries[way_id].get(int(post_row["version"]), [])
             if len(coords) >= 2:
                 post_selection[way_id] = coords
+            post_dates[way_id] = f"v{int(post_row['version'])} ({format_date(post_row['timestamp'])})"
+        else:
+            post_dates[way_id] = "no post-strike state"
 
     all_coords = []
     for coords in list(pre_selection.values()) + list(post_selection.values()):
@@ -926,12 +1006,13 @@ def create_before_after_comparison(all_geometries, all_milestones, output_path):
     bounds = expand_bounds(all_coords, padding_ratio=0.18)
     basemap_image, basemap_info = build_basemap(bounds)
 
-    fig, (ax_pre, ax_post) = plt.subplots(1, 2, figsize=(16, 8.5))
+    fig, (ax_pre, ax_post) = plt.subplots(1, 2, figsize=(16, 9.5))
 
-    for ax, selection, title in [
-        (ax_pre, pre_selection, "BEFORE strike (last pre-strike state)"),
-        (ax_post, post_selection, "AFTER strike (first post-strike state)"),
-    ]:
+    panel_configs = [
+        (ax_pre, pre_selection, pre_dates, "BEFORE strike (last pre-strike state)", True),
+        (ax_post, post_selection, post_dates, "AFTER strike (first post-strike state)", False),
+    ]
+    for ax, selection, dates, title, is_before in panel_configs:
         ax.imshow(basemap_image, origin="upper")
         legend_handles = []
         for way_id, coords in sorted(selection.items()):
@@ -955,17 +1036,25 @@ def create_before_after_comparison(all_geometries, all_milestones, output_path):
                     transform=ax.transAxes, color="#888888",
                     bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "alpha": 0.9})
 
-        ax.set_title(title, fontsize=11, fontweight="bold", color="#C62828" if "BEFORE" in title else "#1565C0")
+        ax.set_title(title, fontsize=11, fontweight="bold", color="#C62828" if is_before else "#1565C0")
         ax.set_xlim(0, basemap_info["width_px"])
         ax.set_ylim(basemap_info["height_px"], 0)
         ax.set_axis_off()
         if legend_handles:
             ax.legend(handles=legend_handles, loc="upper right", framealpha=0.95, fontsize=8)
 
+        # Date info box showing state dates per way
+        date_lines = [f"Strike date: {format_date(strike_timestamp)}"]
+        for way_id in WAY_IDS:
+            date_lines.append(f"{way_short_label(way_id)}: {dates[way_id]}")
+        ax.text(0.01, 0.99, "\n".join(date_lines), transform=ax.transAxes, fontsize=8.5,
+                ha="left", va="top",
+                bbox={"boxstyle": "round,pad=0.25", "facecolor": "white", "alpha": 0.92, "edgecolor": "#888888"})
+
     ways_before = len(pre_selection)
     ways_after = len(post_selection)
-    fig.suptitle(f"Pre-strike vs post-strike OSM state ({ways_before} way(s) before, {ways_after} after)",
-                 fontsize=13, fontweight="bold", y=0.98)
+    fig.suptitle(f"Pre-strike vs post-strike OSM state  |  Strike date: {format_date(strike_timestamp)}  |  {ways_before} way(s) before, {ways_after} after",
+                 fontsize=12, fontweight="bold", y=0.98)
     fig.text(0.01, 0.01, "Basemap: OpenStreetMap", fontsize=8)
     plt.tight_layout()
     plt.savefig(output_path, dpi=200, bbox_inches="tight")
@@ -1498,6 +1587,472 @@ def plot_conflation_risk(conflation, output_path):
     plt.close()
 
 
+def compute_all_geometries_centroid(all_geometries, all_milestones):
+    """Compute the centroid of all analysed ways' latest geometries."""
+    all_points = []
+    for way_id in WAY_IDS:
+        latest = all_milestones[way_id]["latest"]
+        if latest is not None:
+            coords = all_geometries[way_id].get(int(latest["version"]), [])
+            all_points.extend(coords)
+    if not all_points:
+        return None, None
+    lat = sum(p[0] for p in all_points) / len(all_points)
+    lon = sum(p[1] for p in all_points) / len(all_points)
+    return lat, lon
+
+
+def build_overpass_query(center_lat, center_lon, radius_m, date_iso=None):
+    """Construct an Overpass QL query for features within radius of center."""
+    date_clause = f'[date:"{date_iso}"]' if date_iso else ""
+    return (
+        f"[out:json][timeout:90]{date_clause};\n"
+        f"(\n"
+        f"  nwr(around:{radius_m},{center_lat},{center_lon});\n"
+        f");\n"
+        f"out center tags;\n"
+    )
+
+
+def fetch_overpass(query_string):
+    """POST query to Overpass API with retry logic."""
+    for attempt in range(3):
+        try:
+            response = SESSION.post(
+                OVERPASS_API_URL,
+                data={"data": query_string},
+                timeout=120,
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as exc:
+            if attempt < 2:
+                wait = 10 * (attempt + 1)
+                print(f"Overpass query attempt {attempt + 1} failed ({exc}), retrying in {wait}s...")
+                time.sleep(wait)
+            else:
+                print(f"Warning: Overpass query failed after 3 attempts ({exc}). Continuing with empty results.")
+                return {"elements": []}
+
+
+def classify_osm_element(tags):
+    """Classify an OSM element into a CDE-relevant category based on its tags."""
+    if not tags:
+        return "unknown"
+    for category, info in CDE_CATEGORIES.items():
+        for tag_key, accepted_values in info["match_tags"].items():
+            if tag_key in tags:
+                if accepted_values is None:
+                    return category
+                if tags[tag_key] in accepted_values:
+                    return category
+    return "unknown"
+
+
+def extract_nearby_features(overpass_response, center_lat, center_lon, radii):
+    """Parse Overpass response into a list of classified feature dicts."""
+    elements = overpass_response.get("elements", [])
+    reference = (center_lat, center_lon)
+    features = []
+
+    for elem in elements:
+        elem_type = elem.get("type", "")
+        osm_id = elem.get("id")
+        tags = elem.get("tags", {})
+
+        # Get coordinates
+        if elem_type == "node":
+            lat = elem.get("lat")
+            lon = elem.get("lon")
+        else:
+            center = elem.get("center", {})
+            lat = center.get("lat")
+            lon = center.get("lon")
+
+        if lat is None or lon is None:
+            continue
+
+        # Compute distance from analysis centroid
+        xy = latlon_to_local_xy([(lat, lon)], reference)
+        distance_m = math.hypot(xy[0][0], xy[0][1])
+
+        category = classify_osm_element(tags)
+        name = tags.get("name") or tags.get("name:en") or tags.get("name:fa") or ""
+
+        # Determine radius bands
+        radius_bands = {}
+        for r in radii:
+            radius_bands[f"within_{r}m"] = distance_m <= r
+
+        feature = {
+            "element_type": elem_type,
+            "osm_id": osm_id,
+            "name": name,
+            "lat": lat,
+            "lon": lon,
+            "distance_m": round(distance_m, 1),
+            "cde_category": category,
+            "cde_label": CDE_CATEGORY_LABELS.get(category, "Unknown"),
+            "tags_str": "; ".join(f"{k}={v}" for k, v in sorted(tags.items())),
+        }
+        feature.update(radius_bands)
+        features.append(feature)
+
+    return features
+
+
+def build_nearby_features_df(features):
+    """Convert features list to DataFrame."""
+    if not features:
+        return pd.DataFrame()
+    return pd.DataFrame(features)
+
+
+def compare_prestrike_current(df_pre, df_current):
+    """Compare pre-strike and current nearby feature sets."""
+    if df_pre.empty and df_current.empty:
+        return pd.DataFrame()
+
+    merge_cols = ["element_type", "osm_id"]
+
+    if df_pre.empty:
+        result = df_current[["element_type", "osm_id", "name", "distance_m", "cde_category", "cde_label", "tags_str"]].copy()
+        result["in_prestrike"] = False
+        result["in_current"] = True
+        result["status"] = "added_after_strike"
+        return result
+
+    if df_current.empty:
+        result = df_pre[["element_type", "osm_id", "name", "distance_m", "cde_category", "cde_label", "tags_str"]].copy()
+        result["in_prestrike"] = True
+        result["in_current"] = False
+        result["status"] = "removed_after_strike"
+        return result
+
+    pre_subset = df_pre[["element_type", "osm_id", "name", "distance_m", "cde_category", "cde_label", "tags_str"]].copy()
+    pre_subset = pre_subset.rename(columns={"name": "name_pre", "cde_category": "cde_category_pre",
+                                             "cde_label": "cde_label_pre", "tags_str": "tags_pre",
+                                             "distance_m": "distance_m_pre"})
+
+    cur_subset = df_current[["element_type", "osm_id", "name", "distance_m", "cde_category", "cde_label", "tags_str"]].copy()
+    cur_subset = cur_subset.rename(columns={"name": "name_current", "cde_category": "cde_category_current",
+                                             "cde_label": "cde_label_current", "tags_str": "tags_current",
+                                             "distance_m": "distance_m_current"})
+
+    merged = pd.merge(pre_subset, cur_subset, on=merge_cols, how="outer", indicator=True)
+    merged["in_prestrike"] = merged["_merge"].isin(["left_only", "both"])
+    merged["in_current"] = merged["_merge"].isin(["right_only", "both"])
+    merged["status"] = merged["_merge"].map({
+        "left_only": "removed_after_strike",
+        "right_only": "added_after_strike",
+        "both": "present_both",
+    })
+    merged.drop(columns=["_merge"], inplace=True)
+    return merged
+
+
+def build_local_context_summary(df_pre, df_current, radii, center_lat, center_lon, pre_date_iso, strike_date_iso):
+    """Build summary dict for local context JSON output."""
+    def counts_by_category(df):
+        if df.empty:
+            return {cat: 0 for cat in CDE_CATEGORY_ORDER}
+        counts = df["cde_category"].value_counts().to_dict()
+        return {cat: counts.get(cat, 0) for cat in CDE_CATEGORY_ORDER}
+
+    def counts_by_radius(df, radii):
+        result = {}
+        for r in radii:
+            col = f"within_{r}m"
+            result[str(r)] = int(df[col].sum()) if col in df.columns else 0
+        return result
+
+    def named_features(df):
+        if df.empty:
+            return []
+        named = df[df["name"].astype(str).str.len() > 0].sort_values("distance_m")
+        return [
+            {"name": row["name"], "category": row["cde_category"], "distance_m": row["distance_m"]}
+            for _, row in named.head(30).iterrows()
+        ]
+
+    comparison_counts = {"added": 0, "removed": 0, "unchanged": 0}
+    if not df_pre.empty or not df_current.empty:
+        comp = compare_prestrike_current(df_pre, df_current)
+        if not comp.empty:
+            comparison_counts["added"] = int((comp["status"] == "added_after_strike").sum())
+            comparison_counts["removed"] = int((comp["status"] == "removed_after_strike").sum())
+            comparison_counts["unchanged"] = int((comp["status"] == "present_both").sum())
+
+    return {
+        "center": {"lat": center_lat, "lon": center_lon},
+        "strike_date": strike_date_iso,
+        "query_date_prestrike": pre_date_iso,
+        "query_date_current": "now",
+        "radii_m": radii,
+        "prestrike": {
+            "total_features": len(df_pre),
+            "by_category": counts_by_category(df_pre),
+            "by_radius": counts_by_radius(df_pre, radii),
+            "named_features": named_features(df_pre),
+        },
+        "current": {
+            "total_features": len(df_current),
+            "by_category": counts_by_category(df_current),
+            "by_radius": counts_by_radius(df_current, radii),
+            "named_features": named_features(df_current),
+        },
+        "comparison": comparison_counts,
+    }
+
+
+def draw_radius_circles(ax, center_lat, center_lon, radii, basemap_info):
+    """Draw concentric radius circles on a basemap axes."""
+    cx, cy = latlon_to_basemap_pixels(center_lat, center_lon, basemap_info)
+    for r_m in radii:
+        # Approximate pixel radius: offset center by r_m meters north and measure pixel distance
+        delta_lat = r_m / 111_320.0
+        _, ny = latlon_to_basemap_pixels(center_lat + delta_lat, center_lon, basemap_info)
+        pixel_radius = abs(cy - ny)
+        circle = plt.Circle((cx, cy), pixel_radius, fill=False, edgecolor="#666666",
+                             linestyle="--", linewidth=1.0, alpha=0.6)
+        ax.add_patch(circle)
+        ax.text(cx + pixel_radius * 0.71, cy - pixel_radius * 0.71, f"{r_m}m",
+                fontsize=7, color="#555555", ha="left", va="bottom",
+                bbox={"boxstyle": "round,pad=0.1", "facecolor": "white", "alpha": 0.7, "edgecolor": "none"})
+
+
+def plot_local_context_map(df, center_lat, center_lon, radii, title, output_path, way_overlays=None):
+    """Plot nearby features on a basemap with radius circles and CDE category coloring."""
+    # Compute bounds from outermost radius
+    max_radius = max(radii)
+    delta_lat = max_radius / 111_320.0 * 1.3
+    delta_lon = max_radius / (111_320.0 * math.cos(math.radians(center_lat))) * 1.3
+    bounds = (center_lat - delta_lat, center_lat + delta_lat,
+              center_lon - delta_lon, center_lon + delta_lon)
+    basemap_image, basemap_info = build_basemap(bounds)
+
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ax.imshow(basemap_image, origin="upper")
+
+    # Draw way overlays
+    if way_overlays:
+        for way_id, coords in sorted(way_overlays.items()):
+            plot_coords = close_coords(coords) if len(coords) >= 3 else coords
+            points = geometry_to_pixel_points(plot_coords, basemap_info)
+            xs = [p[0] for p in points]
+            ys = [p[1] for p in points]
+            color = way_color_hex(way_id)
+            if len(coords) >= 3:
+                ax.fill(xs, ys, color=color, alpha=0.08)
+            ax.plot(xs, ys, color=color, linewidth=2, alpha=0.7, linestyle="-")
+
+    # Draw radius circles
+    draw_radius_circles(ax, center_lat, center_lon, radii, basemap_info)
+
+    # Plot features by category
+    legend_handles = []
+    if not df.empty:
+        for cat in CDE_CATEGORY_ORDER:
+            subset = df[df["cde_category"] == cat]
+            if subset.empty:
+                continue
+            color = CDE_CATEGORY_COLORS[cat]
+            label = CDE_CATEGORY_LABELS[cat]
+            pxs = []
+            pys = []
+            for _, row in subset.iterrows():
+                px, py = latlon_to_basemap_pixels(row["lat"], row["lon"], basemap_info)
+                pxs.append(px)
+                pys.append(py)
+            ax.scatter(pxs, pys, s=28, color=color, alpha=0.75, edgecolors="white",
+                       linewidths=0.4, zorder=4)
+            legend_handles.append(Line2D([0], [0], marker="o", color="none",
+                                         markerfacecolor=color, markersize=7,
+                                         label=f"{label} ({len(subset)})"))
+
+        # Label named features within 250m
+        named = df[(df["name"].astype(str).str.len() > 0) & (df["distance_m"] <= 250)].sort_values("distance_m")
+        for _, row in named.head(12).iterrows():
+            px, py = latlon_to_basemap_pixels(row["lat"], row["lon"], basemap_info)
+            ax.annotate(row["name"], xy=(px, py), xytext=(5, 5), textcoords="offset points",
+                        fontsize=6.5, color="#333333",
+                        bbox={"boxstyle": "round,pad=0.15", "facecolor": "white", "alpha": 0.8, "edgecolor": "none"})
+
+    # Center marker
+    cx, cy = latlon_to_basemap_pixels(center_lat, center_lon, basemap_info)
+    ax.scatter([cx], [cy], marker="*", s=200, color="#D32F2F", edgecolors="white",
+               linewidths=1, zorder=5)
+
+    ax.set_title(title, fontsize=11, fontweight="bold")
+    ax.set_xlim(0, basemap_info["width_px"])
+    ax.set_ylim(basemap_info["height_px"], 0)
+    ax.set_axis_off()
+    if legend_handles:
+        # Add way overlay legend entries
+        if way_overlays:
+            for way_id in sorted(way_overlays.keys()):
+                legend_handles.append(Line2D([0], [0], color=way_color_hex(way_id), linewidth=2,
+                                             label=way_short_label(way_id)))
+        ax.legend(handles=legend_handles, loc="upper right", fontsize=7.5, framealpha=0.95)
+    total_text = f"{len(df)} features within {max_radius}m"
+    ax.text(0.01, 0.01, total_text, transform=ax.transAxes, fontsize=9,
+            bbox={"boxstyle": "round,pad=0.2", "facecolor": "white", "alpha": 0.9, "edgecolor": "#888888"})
+    fig.text(0.01, 0.005, "Basemap: OpenStreetMap | Data: Overpass API", fontsize=7)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close()
+
+
+def plot_local_context_comparison(df_pre, df_current, center_lat, center_lon, radii,
+                                  output_path, way_overlays=None, pre_date_label="",
+                                  strike_date_label=""):
+    """Create a multi-panel comparison of pre-strike vs current local OSM context."""
+    max_radius = max(radii)
+    delta_lat = max_radius / 111_320.0 * 1.3
+    delta_lon = max_radius / (111_320.0 * math.cos(math.radians(center_lat))) * 1.3
+    bounds = (center_lat - delta_lat, center_lat + delta_lat,
+              center_lon - delta_lon, center_lon + delta_lon)
+    basemap_image, basemap_info = build_basemap(bounds)
+
+    fig = plt.figure(figsize=(18, 14))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1.4, 1], hspace=0.28, wspace=0.22)
+    ax_pre = fig.add_subplot(gs[0, 0])
+    ax_cur = fig.add_subplot(gs[0, 1])
+    ax_density = fig.add_subplot(gs[1, 0])
+    ax_summary = fig.add_subplot(gs[1, 1])
+
+    # --- Top panels: side-by-side context maps ---
+    for ax, df, panel_title in [
+        (ax_pre, df_pre, f"Pre-strike ({pre_date_label})"),
+        (ax_cur, df_current, "Current"),
+    ]:
+        ax.imshow(basemap_image, origin="upper")
+        if way_overlays:
+            for way_id, coords in sorted(way_overlays.items()):
+                plot_coords = close_coords(coords) if len(coords) >= 3 else coords
+                points = geometry_to_pixel_points(plot_coords, basemap_info)
+                xs = [p[0] for p in points]
+                ys = [p[1] for p in points]
+                color = way_color_hex(way_id)
+                if len(coords) >= 3:
+                    ax.fill(xs, ys, color=color, alpha=0.08)
+                ax.plot(xs, ys, color=color, linewidth=2, alpha=0.7)
+        draw_radius_circles(ax, center_lat, center_lon, radii, basemap_info)
+
+        if not df.empty:
+            for cat in CDE_CATEGORY_ORDER:
+                subset = df[df["cde_category"] == cat]
+                if subset.empty:
+                    continue
+                color = CDE_CATEGORY_COLORS[cat]
+                pxs, pys = [], []
+                for _, row in subset.iterrows():
+                    px, py = latlon_to_basemap_pixels(row["lat"], row["lon"], basemap_info)
+                    pxs.append(px)
+                    pys.append(py)
+                ax.scatter(pxs, pys, s=24, color=color, alpha=0.75, edgecolors="white",
+                           linewidths=0.3, zorder=4)
+
+        cx, cy = latlon_to_basemap_pixels(center_lat, center_lon, basemap_info)
+        ax.scatter([cx], [cy], marker="*", s=150, color="#D32F2F", edgecolors="white",
+                   linewidths=1, zorder=5)
+        ax.set_title(panel_title, fontsize=11, fontweight="bold")
+        ax.set_xlim(0, basemap_info["width_px"])
+        ax.set_ylim(basemap_info["height_px"], 0)
+        ax.set_axis_off()
+        ax.text(0.01, 0.01, f"{len(df)} features", transform=ax.transAxes, fontsize=8,
+                bbox={"boxstyle": "round,pad=0.15", "facecolor": "white", "alpha": 0.9, "edgecolor": "#888888"})
+
+    # --- Bottom left: feature density bar chart ---
+    categories_with_data = []
+    for cat in CDE_CATEGORY_ORDER:
+        pre_count = int((df_pre["cde_category"] == cat).sum()) if not df_pre.empty else 0
+        cur_count = int((df_current["cde_category"] == cat).sum()) if not df_current.empty else 0
+        if pre_count > 0 or cur_count > 0:
+            categories_with_data.append((cat, pre_count, cur_count))
+
+    if categories_with_data:
+        cat_labels = [CDE_CATEGORY_LABELS.get(c[0], c[0]) for c in categories_with_data]
+        pre_counts = [c[1] for c in categories_with_data]
+        cur_counts = [c[2] for c in categories_with_data]
+        x = np.arange(len(cat_labels))
+        bar_width = 0.35
+        ax_density.bar(x - bar_width / 2, pre_counts, bar_width, label=f"Pre-strike ({pre_date_label})",
+                       color="#90CAF9", edgecolor="#1565C0", linewidth=0.8)
+        ax_density.bar(x + bar_width / 2, cur_counts, bar_width, label="Current",
+                       color="#FFCC80", edgecolor="#E65100", linewidth=0.8)
+        ax_density.set_xticks(x)
+        ax_density.set_xticklabels(cat_labels, rotation=25, ha="right", fontsize=8)
+        ax_density.set_ylabel("Feature count")
+        ax_density.legend(fontsize=8, framealpha=0.95)
+        ax_density.set_title("Feature count by CDE category", fontsize=10, fontweight="bold")
+        ax_density.grid(axis="y", linestyle=":", alpha=0.4)
+    else:
+        ax_density.text(0.5, 0.5, "No features found", fontsize=12, ha="center", va="center",
+                        transform=ax_density.transAxes, color="#888888")
+        ax_density.set_axis_off()
+
+    # --- Bottom right: CDE summary panel ---
+    ax_summary.set_axis_off()
+    ax_summary.set_title("CDE information environment summary", fontsize=10, fontweight="bold")
+
+    summary_lines = []
+    summary_lines.append(f"Strike date: {strike_date_label}")
+    summary_lines.append(f"Analysis radius: {max_radius}m")
+    summary_lines.append(f"Pre-strike features: {len(df_pre)}")
+    summary_lines.append(f"Current features: {len(df_current)}")
+    if not df_pre.empty or not df_current.empty:
+        comp = compare_prestrike_current(df_pre, df_current)
+        if not comp.empty:
+            added = int((comp["status"] == "added_after_strike").sum())
+            removed = int((comp["status"] == "removed_after_strike").sum())
+            unchanged = int((comp["status"] == "present_both").sum())
+            summary_lines.append(f"Added after strike: {added}")
+            summary_lines.append(f"Removed after strike: {removed}")
+            summary_lines.append(f"Unchanged: {unchanged}")
+
+    # Civilian-sensitive pre-strike count
+    civ_sens_pre = int((df_pre["cde_category"] == "civilian_sensitive").sum()) if not df_pre.empty else 0
+    civ_sens_cur = int((df_current["cde_category"] == "civilian_sensitive").sum()) if not df_current.empty else 0
+    mil_pre = int((df_pre["cde_category"] == "military_security").sum()) if not df_pre.empty else 0
+    mil_cur = int((df_current["cde_category"] == "military_security").sum()) if not df_current.empty else 0
+
+    summary_lines.append("")
+    summary_lines.append("KEY CDE QUESTION:")
+    summary_lines.append("Would a pre-strike OSM query have revealed")
+    summary_lines.append("civilian-sensitive features nearby?")
+    summary_lines.append("")
+    if civ_sens_pre > 0:
+        summary_lines.append(f"YES: {civ_sens_pre} civilian-sensitive feature(s)")
+        summary_lines.append("were present in the pre-strike OSM record.")
+    else:
+        summary_lines.append("NO: Zero civilian-sensitive features were")
+        summary_lines.append("present in the pre-strike OSM record.")
+    summary_lines.append(f"(Current record shows {civ_sens_cur})")
+    summary_lines.append("")
+    summary_lines.append(f"Military/security features: {mil_pre} pre-strike, {mil_cur} current")
+
+    # Named civilian-sensitive features
+    if not df_pre.empty:
+        named_civ = df_pre[(df_pre["cde_category"] == "civilian_sensitive") & (df_pre["name"].astype(str).str.len() > 0)]
+        if not named_civ.empty:
+            summary_lines.append("")
+            summary_lines.append("Named civilian-sensitive (pre-strike):")
+            for _, row in named_civ.head(5).iterrows():
+                summary_lines.append(f"  {row['name']} ({row['distance_m']:.0f}m)")
+
+    ax_summary.text(0.05, 0.95, "\n".join(summary_lines), transform=ax_summary.transAxes,
+                    fontsize=9, ha="left", va="top", family="monospace",
+                    bbox={"boxstyle": "round,pad=0.4", "facecolor": "#FAFAFA",
+                          "edgecolor": "#CCCCCC", "alpha": 0.95})
+
+    fig.suptitle(f"Local OSM context: pre-strike vs current  |  Strike: {strike_date_label}",
+                 fontsize=13, fontweight="bold", y=0.99)
+    fig.text(0.01, 0.005, "Data: Overpass API | Basemap: OpenStreetMap", fontsize=7)
+    plt.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close()
+
+
 def build_way_narrative(summary, strike_timestamp):
     sentences = [
         f"{summary['way_label']} has {summary['versions']} recorded versions spanning {format_timestamp(summary['first_timestamp'])} to {format_timestamp(summary['latest_timestamp'])}.",
@@ -1587,7 +2142,7 @@ def json_ready(value):
     return value
 
 
-def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files):
+def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files, local_context_summary=None):
     ways_rows = []
     milestone_rows = []
     for _, row in summary_df.sort_values("way_id").iterrows():
@@ -1725,6 +2280,81 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
             "",
             f"This figure turns the edit history and spatial analysis into a brief interpretive summary. The current qualitative audit rating is {conflation['overall_rating']}, driven by the combination of pre-strike mapping gaps and post-strike clarification.",
             "",
+        ]
+    )
+
+    # Local context section (if available)
+    if local_context_summary is not None:
+        lc = local_context_summary
+        pre_total = lc["prestrike"]["total_features"]
+        cur_total = lc["current"]["total_features"]
+        pre_civ = lc["prestrike"]["by_category"].get("civilian_sensitive", 0)
+        cur_civ = lc["current"]["by_category"].get("civilian_sensitive", 0)
+        pre_mil = lc["prestrike"]["by_category"].get("military_security", 0)
+        cur_mil = lc["current"]["by_category"].get("military_security", 0)
+        max_r = max(lc["radii_m"])
+        center = lc["center"]
+
+        cde_answer = (
+            f"**Yes**: {pre_civ} civilian-sensitive feature(s) were present in the pre-strike OSM record within {max_r}m."
+            if pre_civ > 0
+            else f"**No**: zero civilian-sensitive features were present in the pre-strike OSM record within {max_r}m. The current record now shows {cur_civ}."
+        )
+
+        lines.extend([
+            "## Local OSM Context and CDE-Relevant Information Environment",
+            "",
+            f"This section reconstructs the local OpenStreetMap information environment within {max_r}m of the analysis centroid "
+            f"({center['lat']:.5f}, {center['lon']:.5f}) to test what a collateral damage estimation (CDE) process relying on OSM "
+            f"data might have seen before and after the strike.",
+            "",
+            f"- **Pre-strike query date**: {lc['query_date_prestrike']}",
+            f"- **Pre-strike features found**: {pre_total} (of which {pre_civ} civilian-sensitive, {pre_mil} military/security)",
+            f"- **Current features found**: {cur_total} (of which {cur_civ} civilian-sensitive, {cur_mil} military/security)",
+            f"- **Features added after strike**: {lc['comparison'].get('added', 0)}",
+            f"- **Features removed after strike**: {lc['comparison'].get('removed', 0)}",
+            "",
+            f"**Would a pre-strike CDE query have flagged civilian-sensitive features nearby?** {cde_answer}",
+            "",
+            f"![Pre-strike local context]({repo_relative(output_dir / 'local_context_prestrike.png', root_dir)})",
+            "",
+            f"This map shows the {pre_total} OSM features within {max_r}m of the analysis centroid as recorded before the strike, "
+            "coloured by CDE category. Concentric circles mark the 50m, 100m, 250m, and 500m radius bands.",
+            "",
+            f"![Current local context]({repo_relative(output_dir / 'local_context_current.png', root_dir)})",
+            "",
+            f"The same view using the current OSM record, showing {cur_total} features. Comparing the two maps reveals "
+            "how the local information environment has changed since the strike.",
+            "",
+            f"![Local context comparison]({repo_relative(output_dir / 'local_context_comparison.png', root_dir)})",
+            "",
+            "This comparison panel combines side-by-side maps with a feature density chart and CDE summary. "
+            "The density chart shows feature counts by category for pre-strike versus current, while the summary panel "
+            "directly addresses whether the pre-strike OSM record contained enough information to flag civilian presence.",
+            "",
+        ])
+
+        # Named features table
+        pre_named = lc["prestrike"].get("named_features", [])
+        cur_named = lc["current"].get("named_features", [])
+        if pre_named or cur_named:
+            lines.append("### Named features near the site")
+            lines.append("")
+            all_named = {}
+            for f in pre_named:
+                all_named[f["name"]] = {"pre": f"{f['category']} ({f['distance_m']:.0f}m)", "cur": ""}
+            for f in cur_named:
+                if f["name"] in all_named:
+                    all_named[f["name"]]["cur"] = f"{f['category']} ({f['distance_m']:.0f}m)"
+                else:
+                    all_named[f["name"]] = {"pre": "", "cur": f"{f['category']} ({f['distance_m']:.0f}m)"}
+            named_rows = [{"Name": name, "Pre-strike": info["pre"], "Current": info["cur"]}
+                          for name, info in sorted(all_named.items())]
+            lines.append(markdown_table(pd.DataFrame(named_rows[:20])))
+            lines.append("")
+
+    lines.extend(
+        [
             "## Pre-strike State Comparison",
             "",
             markdown_table(pd.DataFrame(milestone_rows)),
@@ -1763,7 +2393,7 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
     return readme_path
 
 
-def build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_findings, conflation, generated_files, root_dir):
+def build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_findings, conflation, generated_files, root_dir, local_context_summary=None):
     ways = {}
     for way_id, summary in summary_by_way.items():
         milestones = {}
@@ -1777,7 +2407,7 @@ def build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_fin
             "milestones": milestones,
         }
 
-    return {
+    result = {
         "project_title": PROJECT_TITLE,
         "strike_date": iso_timestamp(strike_timestamp),
         "generated_at": iso_timestamp(pd.Timestamp.now(tz="UTC")),
@@ -1786,9 +2416,12 @@ def build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_fin
         "conflation_assessment": conflation,
         "generated_files": sorted(repo_relative(path, root_dir) for path in generated_files),
     }
+    if local_context_summary is not None:
+        result["local_context"] = local_context_summary
+    return result
 
 
-def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns=None):
+def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns=None, local_context_summary=None):
     lines = [
         PROJECT_TITLE,
         "=" * 100,
@@ -1817,6 +2450,33 @@ def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, c
         lines.append(f"- School-to-barracks minimum vertex distance: {conflation['latest_school_barracks_distance_m']:.1f} m")
     for key, count in conflation.get("shared_nodes", {}).items():
         lines.append(f"- Shared boundary nodes ({key.replace('_', '-')}): {count}")
+
+    # Local context
+    if local_context_summary is not None:
+        lc = local_context_summary
+        lines.extend(["", "LOCAL OSM CONTEXT (CDE INFORMATION ENVIRONMENT)", "-" * 100])
+        lines.append(f"- Analysis centroid: {lc['center']['lat']:.5f}, {lc['center']['lon']:.5f}")
+        lines.append(f"- Pre-strike query date: {lc['query_date_prestrike']}")
+        lines.append(f"- Pre-strike features within {max(lc['radii_m'])}m: {lc['prestrike']['total_features']}")
+        lines.append(f"- Current features within {max(lc['radii_m'])}m: {lc['current']['total_features']}")
+        lines.append(f"- Features added after strike: {lc['comparison'].get('added', 0)}")
+        lines.append(f"- Features removed after strike: {lc['comparison'].get('removed', 0)}")
+        lines.append("")
+        lines.append("  Pre-strike features by category:")
+        for cat in CDE_CATEGORY_ORDER:
+            count = lc["prestrike"]["by_category"].get(cat, 0)
+            if count > 0:
+                lines.append(f"    {CDE_CATEGORY_LABELS.get(cat, cat)}: {count}")
+        lines.append("  Current features by category:")
+        for cat in CDE_CATEGORY_ORDER:
+            count = lc["current"]["by_category"].get(cat, 0)
+            if count > 0:
+                lines.append(f"    {CDE_CATEGORY_LABELS.get(cat, cat)}: {count}")
+        pre_civ = lc["prestrike"]["by_category"].get("civilian_sensitive", 0)
+        if pre_civ > 0:
+            lines.append(f"  [RISK] Pre-strike OSM record DID contain {pre_civ} civilian-sensitive feature(s).")
+        else:
+            lines.append(f"  [RISK] Pre-strike OSM record contained ZERO civilian-sensitive features.")
 
     # Changeset patterns
     if changeset_patterns:
@@ -1918,7 +2578,7 @@ def run():
     generated_files.extend(generate_state_maps(all_geometries, all_milestones, strike_timestamp, output_dir))
 
     before_after_path = output_dir / "before_after_comparison.png"
-    create_before_after_comparison(all_geometries, all_milestones, before_after_path)
+    create_before_after_comparison(all_geometries, all_milestones, strike_timestamp, before_after_path)
     generated_files.append(before_after_path)
 
     changeset_patterns = analyze_changeset_patterns(all_histories)
@@ -1930,16 +2590,113 @@ def run():
 
     key_findings = generate_key_findings(summary_by_way, conflation, strike_timestamp)
 
+    # --- Local context collection ---
+    local_context_summary = None
+    centroid_lat, centroid_lon = compute_all_geometries_centroid(all_geometries, all_milestones)
+    if centroid_lat is not None:
+        print(f"\n=== LOCAL CONTEXT COLLECTION ===")
+        print(f"Analysis centroid: {centroid_lat:.6f}, {centroid_lon:.6f}")
+
+        # Determine pre-strike query date from last pre-strike way state
+        pre_strike_query_date = strike_timestamp - pd.Timedelta(days=1)
+        for way_id in WAY_IDS:
+            pre_row = all_milestones[way_id]["last_pre_strike"]
+            if pre_row is not None:
+                pre_strike_query_date = pre_row["timestamp"]
+                break
+        pre_strike_iso = pre_strike_query_date.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        print(f"Querying Overpass API for pre-strike state ({pre_strike_iso})...")
+        query_pre = build_overpass_query(centroid_lat, centroid_lon,
+                                         LOCAL_CONTEXT_QUERY_RADIUS_M,
+                                         date_iso=pre_strike_iso)
+        response_pre = fetch_overpass(query_pre)
+        features_pre = extract_nearby_features(response_pre, centroid_lat, centroid_lon,
+                                               LOCAL_CONTEXT_RADII_M)
+        df_pre = build_nearby_features_df(features_pre)
+
+        time.sleep(2)  # Rate-limit courtesy for Overpass API
+
+        print("Querying Overpass API for current state...")
+        query_current = build_overpass_query(centroid_lat, centroid_lon,
+                                             LOCAL_CONTEXT_QUERY_RADIUS_M)
+        response_current = fetch_overpass(query_current)
+        features_current = extract_nearby_features(response_current, centroid_lat, centroid_lon,
+                                                   LOCAL_CONTEXT_RADII_M)
+        df_current = build_nearby_features_df(features_current)
+
+        # Save CSVs
+        pre_csv = output_dir / "nearby_features_prestrike.csv"
+        df_pre.to_csv(pre_csv, index=False)
+        generated_files.append(pre_csv)
+
+        current_csv = output_dir / "nearby_features_current.csv"
+        df_current.to_csv(current_csv, index=False)
+        generated_files.append(current_csv)
+
+        df_comparison = compare_prestrike_current(df_pre, df_current)
+        comparison_csv = output_dir / "nearby_features_comparison.csv"
+        df_comparison.to_csv(comparison_csv, index=False)
+        generated_files.append(comparison_csv)
+
+        # Build summary
+        local_context_summary = build_local_context_summary(
+            df_pre, df_current, LOCAL_CONTEXT_RADII_M,
+            centroid_lat, centroid_lon,
+            pre_strike_iso, iso_timestamp(strike_timestamp),
+        )
+        local_summary_path = output_dir / "nearby_features_summary.json"
+        local_summary_path.write_text(
+            json.dumps(local_context_summary, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        generated_files.append(local_summary_path)
+
+        # Collect latest way geometries for overlay
+        latest_way_coords = {}
+        for way_id in WAY_IDS:
+            latest = all_milestones[way_id]["latest"]
+            if latest is not None:
+                coords = all_geometries[way_id].get(int(latest["version"]), [])
+                if len(coords) >= 2:
+                    latest_way_coords[way_id] = coords
+
+        pre_date_label = format_date(pre_strike_query_date)
+        strike_date_label = format_date(strike_timestamp)
+
+        pre_map_path = output_dir / "local_context_prestrike.png"
+        plot_local_context_map(df_pre, centroid_lat, centroid_lon, LOCAL_CONTEXT_RADII_M,
+                               f"Local OSM context: pre-strike ({pre_date_label})",
+                               pre_map_path, way_overlays=latest_way_coords)
+        generated_files.append(pre_map_path)
+
+        current_map_path = output_dir / "local_context_current.png"
+        plot_local_context_map(df_current, centroid_lat, centroid_lon, LOCAL_CONTEXT_RADII_M,
+                               "Local OSM context: current",
+                               current_map_path, way_overlays=latest_way_coords)
+        generated_files.append(current_map_path)
+
+        comparison_map_path = output_dir / "local_context_comparison.png"
+        plot_local_context_comparison(df_pre, df_current, centroid_lat, centroid_lon,
+                                      LOCAL_CONTEXT_RADII_M, comparison_map_path,
+                                      way_overlays=latest_way_coords,
+                                      pre_date_label=pre_date_label,
+                                      strike_date_label=strike_date_label)
+        generated_files.append(comparison_map_path)
+
+        print(f"Local context: {len(df_pre)} pre-strike features, {len(df_current)} current features")
+    else:
+        print("Warning: could not compute centroid for local context collection.")
+
     results_txt = output_dir / "results.txt"
-    write_results_txt(results_txt, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns)
+    write_results_txt(results_txt, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns, local_context_summary)
     generated_files.append(results_txt)
 
-    readme_path = generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files)
+    readme_path = generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files, local_context_summary)
     generated_files.append(readme_path)
 
     summary_json = output_dir / "summary.json"
     generated_files.append(summary_json)
-    summary_json.write_text(json.dumps(build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_findings, conflation, generated_files, root_dir), ensure_ascii=False, indent=2), encoding="utf-8")
+    summary_json.write_text(json.dumps(build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_findings, conflation, generated_files, root_dir, local_context_summary), ensure_ascii=False, indent=2), encoding="utf-8")
 
     print("\n=== KEY FINDINGS ===")
     for finding in key_findings:

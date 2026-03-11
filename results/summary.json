@@ -1,7 +1,7 @@
 {
   "project_title": "OpenStreetMap History Audit: Shajareh Tayyebeh Girls' School and Adjacent Military Mapping in Minab, Iran",
   "strike_date": "2026-02-28T00:00:00+00:00",
-  "generated_at": "2026-03-11T11:29:06.578664+00:00",
+  "generated_at": "2026-03-11T11:46:16.806757+00:00",
   "ways": {
     "1485767423": {
       "metadata": {
@@ -276,7 +276,14 @@
     "results/combined_timeline.png",
     "results/combined_way_history_analysis.csv",
     "results/conflation_risk.png",
+    "results/local_context_comparison.png",
+    "results/local_context_current.png",
+    "results/local_context_prestrike.png",
     "results/milestone_state_comparison.csv",
+    "results/nearby_features_comparison.csv",
+    "results/nearby_features_current.csv",
+    "results/nearby_features_prestrike.csv",
+    "results/nearby_features_summary.json",
     "results/perimeter_comparison.png",
     "results/results.txt",
     "results/state_maps/first_post_strike_combined.png",
@@ -306,5 +313,288 @@
     "results/way_942760673_history_analysis.csv",
     "results/way_942760673_timeline.png",
     "results/way_history_summary.csv"
-  ]
+  ],
+  "local_context": {
+    "center": {
+      "lat": 27.10891142921348,
+      "lon": 57.08449136966292
+    },
+    "strike_date": "2026-02-28T00:00:00+00:00",
+    "query_date_prestrike": "2021-05-19T02:17:22Z",
+    "query_date_current": "now",
+    "radii_m": [
+      50,
+      100,
+      250,
+      500
+    ],
+    "prestrike": {
+      "total_features": 151,
+      "by_category": {
+        "civilian_sensitive": 0,
+        "civilian_general": 4,
+        "military_security": 1,
+        "government_institutional": 3,
+        "infrastructure_access": 18,
+        "unknown": 125
+      },
+      "by_radius": {
+        "50": 1,
+        "100": 3,
+        "250": 37,
+        "500": 138
+      },
+      "named_features": [
+        {
+          "name": "پادگان سید الشهدا-عاصف",
+          "category": "military_security",
+          "distance_m": 77.2
+        },
+        {
+          "name": "آهن آلات و مصالح ساختمانی محمودی",
+          "category": "civilian_general",
+          "distance_m": 222.4
+        },
+        {
+          "name": "بلوار رسالت",
+          "category": "infrastructure_access",
+          "distance_m": 235.1
+        },
+        {
+          "name": "قائم",
+          "category": "infrastructure_access",
+          "distance_m": 247.3
+        },
+        {
+          "name": "بلوار رسالت",
+          "category": "infrastructure_access",
+          "distance_m": 266.5
+        },
+        {
+          "name": "اداره آب و فاضلاب روستایی",
+          "category": "government_institutional",
+          "distance_m": 318.3
+        },
+        {
+          "name": "اداره جهاد کشاورزی میناب",
+          "category": "government_institutional",
+          "distance_m": 329.3
+        },
+        {
+          "name": "مرکز تحقیقات کشاورزی شهرستان میناب",
+          "category": "government_institutional",
+          "distance_m": 392.6
+        },
+        {
+          "name": "آهن آلات زارع",
+          "category": "civilian_general",
+          "distance_m": 470.8
+        },
+        {
+          "name": "پارک لاله",
+          "category": "unknown",
+          "distance_m": 499.2
+        },
+        {
+          "name": "دانش",
+          "category": "infrastructure_access",
+          "distance_m": 722.0
+        },
+        {
+          "name": "مغیری",
+          "category": "civilian_general",
+          "distance_m": 830.6
+        },
+        {
+          "name": "دانش",
+          "category": "infrastructure_access",
+          "distance_m": 1087.9
+        },
+        {
+          "name": "میناب",
+          "category": "civilian_general",
+          "distance_m": 2639.5
+        },
+        {
+          "name": "جاده ۹۱",
+          "category": "unknown",
+          "distance_m": 367227.6
+        }
+      ]
+    },
+    "current": {
+      "total_features": 1021,
+      "by_category": {
+        "civilian_sensitive": 2,
+        "civilian_general": 12,
+        "military_security": 14,
+        "government_institutional": 4,
+        "infrastructure_access": 142,
+        "unknown": 847
+      },
+      "by_radius": {
+        "50": 26,
+        "100": 127,
+        "250": 647,
+        "500": 993
+      },
+      "named_features": [
+        {
+          "name": "سید الشهدا-عاصف",
+          "category": "military_security",
+          "distance_m": 65.0
+        },
+        {
+          "name": "Shajareh Tayyebeh girls' elementary school",
+          "category": "civilian_sensitive",
+          "distance_m": 88.0
+        },
+        {
+          "name": "رسالت نهم",
+          "category": "infrastructure_access",
+          "distance_m": 89.2
+        },
+        {
+          "name": "پادگان سید الشهدا-عاصف",
+          "category": "military_security",
+          "distance_m": 136.2
+        },
+        {
+          "name": "داروخانه دکتر محمد قادری",
+          "category": "civilian_general",
+          "distance_m": 145.5
+        },
+        {
+          "name": "رسالت نهم",
+          "category": "infrastructure_access",
+          "distance_m": 168.0
+        },
+        {
+          "name": "کافه فست فود سان ست",
+          "category": "civilian_general",
+          "distance_m": 186.6
+        },
+        {
+          "name": "مجتمع فرهنگی سیدالشهدا سپاه",
+          "category": "unknown",
+          "distance_m": 195.3
+        },
+        {
+          "name": "مجتمع فرهنگی سیدالشهدا سپاه",
+          "category": "civilian_general",
+          "distance_m": 207.9
+        },
+        {
+          "name": "کلینیک کشاورزی مروارید",
+          "category": "civilian_general",
+          "distance_m": 213.9
+        },
+        {
+          "name": "بلوار رسالت",
+          "category": "infrastructure_access",
+          "distance_m": 235.1
+        },
+        {
+          "name": "آهن آلات و مصالح ساختمانی محمودی",
+          "category": "civilian_general",
+          "distance_m": 238.8
+        },
+        {
+          "name": "بلوار رسالت",
+          "category": "infrastructure_access",
+          "distance_m": 264.1
+        },
+        {
+          "name": "رسالت دهم",
+          "category": "infrastructure_access",
+          "distance_m": 270.3
+        },
+        {
+          "name": "اداره آب و فاضلاب",
+          "category": "government_institutional",
+          "distance_m": 291.5
+        },
+        {
+          "name": "اداره جهاد کشاورزی میناب",
+          "category": "government_institutional",
+          "distance_m": 329.3
+        },
+        {
+          "name": "اداره شیلات میناب",
+          "category": "government_institutional",
+          "distance_m": 357.3
+        },
+        {
+          "name": "رسالت هشتم",
+          "category": "infrastructure_access",
+          "distance_m": 367.7
+        },
+        {
+          "name": "آهن آلات شیخ آبادی",
+          "category": "civilian_general",
+          "distance_m": 369.4
+        },
+        {
+          "name": "مرکز تحقیقات کشاورزی شهرستان میناب",
+          "category": "government_institutional",
+          "distance_m": 374.2
+        },
+        {
+          "name": "رسالت یازدهم",
+          "category": "infrastructure_access",
+          "distance_m": 377.7
+        },
+        {
+          "name": "رسالت دوازدهم",
+          "category": "infrastructure_access",
+          "distance_m": 435.8
+        },
+        {
+          "name": "آهن آلات زارع",
+          "category": "civilian_general",
+          "distance_m": 446.7
+        },
+        {
+          "name": "سوپرمارکت مالک حسن پور",
+          "category": "civilian_general",
+          "distance_m": 457.6
+        },
+        {
+          "name": "محله پریتقی",
+          "category": "unknown",
+          "distance_m": 473.0
+        },
+        {
+          "name": "لوله و اتصالات ناظری",
+          "category": "civilian_general",
+          "distance_m": 486.6
+        },
+        {
+          "name": "کوچه هفتم",
+          "category": "infrastructure_access",
+          "distance_m": 491.5
+        },
+        {
+          "name": "کوچه ۶۴",
+          "category": "infrastructure_access",
+          "distance_m": 496.5
+        },
+        {
+          "name": "تعمیرگاه جنوب",
+          "category": "civilian_general",
+          "distance_m": 498.3
+        },
+        {
+          "name": "پارک شهر",
+          "category": "unknown",
+          "distance_m": 502.1
+        }
+      ]
+    },
+    "comparison": {
+      "added": 890,
+      "removed": 20,
+      "unchanged": 131
+    }
+  }
 }
