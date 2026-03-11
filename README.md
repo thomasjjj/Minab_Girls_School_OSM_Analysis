@@ -4,6 +4,10 @@
 
 This repository is a post-incident OpenStreetMap history review focused on the mapping state around the strike on the Shajareh Tayyebeh girls' school in Minab on 28 February 2026. The outputs are intended for forensic, journalistic, and technical review, not operational analysis.
 
+Several assumptions could be made from this analysis and I would like to make some clarifications:
+- firstly, this looks solely at OpenStreetMap data but makes no claim as to whether OSM was used in targetting. 
+- secondly, this looks at information in hindsight, including information after international focus on the location. Data was less available prior to this time, as can be seen in the timestamped images.  
+
 ## Methodology
 
 OpenStreetMap (OSM) is a collaborative map database that stores geographic features as editable objects with version history. A **way** in OSM is an ordered list of nodes: it can represent a line, such as a road or wall, or a closed polygon, such as a school or compound perimeter.
