@@ -4,6 +4,12 @@
 
 This repository is a post-incident OpenStreetMap history review focused on the mapping state around the strike on the Shajareh Tayyebeh girls' school in Minab on 28 February 2026. The outputs are intended for forensic, journalistic, and technical review, not operational analysis.
 
+This project began as an experiment to test the claim that the strike may have been carried out with the assistance of AI. My initial aim was to see whether, using AI, I could reproduce the same targeting recommendation. I quickly ran into a problem: once the strike had happened, recent reporting heavily covered the incident, which meant the model already “knew” there was a school at the site. Even when I tried to impose a strict cutoff date, it was difficult to create anything that felt like a credible simulation of a pre-strike targeting attempt.
+
+I therefore changed approach. Instead of trying to simulate the targeting decision directly, I decided to analyse how the information appeared in OpenStreetMap, a widely used open mapping platform. This made it possible to scrape and collect the history of edits to the relevant ways and to examine what information was theoretically available to a system at the time, whether that system was a human analyst, an AI model, or some combination of the two.
+
+What emerges is striking: there appears to be a clear surge in information after the strike that differentiates the school from the nearby military base, whereas the picture before and up to the strike is far less clear. That does not prove OpenStreetMap was used in any targeting or collateral damage estimation process, but it does provide a useful test case for examining how unclear or incomplete open-source mapping might contribute to misidentification when proper verification and due diligence are missing.
+
 ## Methodology
 
 OpenStreetMap (OSM) is a collaborative map database that stores geographic features as editable objects with version history. A **way** in OSM is an ordered list of nodes: it can represent a line, such as a road or wall, or a closed polygon, such as a school or compound perimeter.
