@@ -1267,12 +1267,39 @@ def json_ready(value):
     return value
 
 
-def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, key_findings, conflation, generated_files):
+def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files):
     ways_rows = []
     milestone_rows = []
     for _, row in summary_df.sort_values("way_id").iterrows():
         ways_rows.append({"Way ID": int(row["way_id"]), "Label": row["way_label"], "Role": row["role"], "First version": f"v{int(row['first_version'])} ({format_timestamp(row['first_timestamp'])})", "Latest version": f"v{int(row['latest_version'])} ({format_timestamp(row['latest_timestamp'])})"})
         milestone_rows.append({"Way": row["way_label"], "Last pre-strike": f"v{int(row['last_pre_strike_version'])} ({format_timestamp(row['last_pre_strike_timestamp'])})" if pd.notna(row["last_pre_strike_timestamp"]) else "Not present", "First post-strike": f"v{int(row['first_post_strike_version'])} ({format_timestamp(row['first_post_strike_timestamp'])})" if pd.notna(row["first_post_strike_timestamp"]) else "Not present", "Latest": f"v{int(row['latest_version'])} ({format_timestamp(row['latest_timestamp'])})"})
+
+    school = summary_by_way[1484791929]
+    compound = summary_by_way[1485767423]
+    barracks = summary_by_way[942760673]
+    pre_strike_absence = []
+    if not school["existed_pre_strike"]:
+        pre_strike_absence.append("the school")
+    if not compound["existed_pre_strike"]:
+        pre_strike_absence.append("the smaller military base")
+
+    if len(pre_strike_absence) == 2:
+        pre_strike_absence_text = "the school and the smaller military base"
+    elif len(pre_strike_absence) == 1:
+        pre_strike_absence_text = pre_strike_absence[0]
+    else:
+        pre_strike_absence_text = "all three mapped objects"
+
+    latest_distance_text = ""
+    latest_distance = conflation.get("latest_school_compound_distance_m")
+    if latest_distance is not None:
+        if latest_distance < 1.0:
+            latest_distance_text = " In the latest mapped state, the school and military-base polygons directly touch or abut in the OSM geometry."
+        else:
+            latest_distance_text = (
+                f" In the latest mapped state, the minimum school-to-military-base vertex distance is about "
+                f"{latest_distance:.1f} m."
+            )
 
     important_outputs = sorted(repo_relative(path, root_dir) for path in generated_files if path.suffix.lower() in {".csv", ".json", ".txt", ".png", ".gif", ".md"})
     lines = [
@@ -1311,19 +1338,33 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, key_find
             "",
             f"![Way history animation]({repo_relative(output_dir / 'way_history_animation.gif', root_dir)})",
             "",
+            "This animation replays the mapped geometry changes through time. The bottom timeline shows that the broader barracks way already exists in the pre-strike period, while the school and smaller military-base polygons only enter the OSM record after the strike divider.",
+            "",
             f"![Combined timeline]({repo_relative(output_dir / 'combined_timeline.png', root_dir)})",
             "",
+            "The combined timeline compresses the edit history into discrete events by object. It shows that most school and smaller military-base edits cluster after 28 February 2026, whereas the barracks object has both pre-strike history and a second burst of post-strike refinement.",
+            "",
             f"![Perimeter evolution]({repo_relative(output_dir / 'perimeter_comparison.png', root_dir)})",
+            "",
+            f"This chart tracks how each way's perimeter or line length changes over time. The barracks perimeter changes across pre-strike and post-strike states, while the school and smaller military-base perimeters only appear once those ways are created after the strike.",
             "",
             "## Geometry Overlays",
             "",
             f"![Combined latest geometry overlay]({repo_relative(output_dir / 'combined_latest_overlay.png', root_dir)})",
             "",
+            f"This overlay shows the latest OSM state, where the School, Military base, and Barracks are mapped as separate named polygons rather than one undifferentiated area.{latest_distance_text}",
+            "",
             f"![Last pre-strike combined map]({repo_relative(output_dir / 'state_maps' / 'last_pre_strike_combined.png', root_dir)})",
+            "",
+            f"This is the key pre-strike reference image. In the current history, {pre_strike_absence_text} are not yet present here as separate ways, while the broader barracks boundary remains the main military-tagged pre-strike polygon.",
             "",
             f"![First post-strike combined map]({repo_relative(output_dir / 'state_maps' / 'first_post_strike_combined.png', root_dir)})",
             "",
+            "This panel shows the first available post-strike state for each way. It makes the map clarification visible by showing when the school and smaller military-base polygons first appear as distinct objects in OSM.",
+            "",
             f"![Conflation risk summary]({repo_relative(output_dir / 'conflation_risk.png', root_dir)})",
+            "",
+            f"This figure turns the edit history into a brief interpretive summary. The current audit score is {conflation['overall_rating']} ({conflation['score']}/100), driven mainly by the existence of a broader pre-strike barracks perimeter and the post-strike arrival of more explicit school and smaller military-base mapping.",
             "",
             "## Pre-strike State Comparison",
             "",
@@ -1503,7 +1544,7 @@ def run():
     write_results_txt(results_txt, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation)
     generated_files.append(results_txt)
 
-    readme_path = generate_readme(root_dir, output_dir, strike_timestamp, summary_df, key_findings, conflation, generated_files)
+    readme_path = generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files)
     generated_files.append(readme_path)
 
     summary_json = output_dir / "summary.json"

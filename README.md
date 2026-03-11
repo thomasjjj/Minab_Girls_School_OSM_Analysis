@@ -34,19 +34,33 @@ The analytical divider used by this run is **2026-02-28 00:00:00 UTC**. The scri
 
 ![Way history animation](results/way_history_animation.gif)
 
+This animation replays the mapped geometry changes through time. The bottom timeline shows that the broader barracks way already exists in the pre-strike period, while the school and smaller military-base polygons only enter the OSM record after the strike divider.
+
 ![Combined timeline](results/combined_timeline.png)
 
+The combined timeline compresses the edit history into discrete events by object. It shows that most school and smaller military-base edits cluster after 28 February 2026, whereas the barracks object has both pre-strike history and a second burst of post-strike refinement.
+
 ![Perimeter evolution](results/perimeter_comparison.png)
+
+This chart tracks how each way's perimeter or line length changes over time. The barracks perimeter changes across pre-strike and post-strike states, while the school and smaller military-base perimeters only appear once those ways are created after the strike.
 
 ## Geometry Overlays
 
 ![Combined latest geometry overlay](results/combined_latest_overlay.png)
 
+This overlay shows the latest OSM state, where the School, Military base, and Barracks are mapped as separate named polygons rather than one undifferentiated area. In the latest mapped state, the school and military-base polygons directly touch or abut in the OSM geometry.
+
 ![Last pre-strike combined map](results/state_maps/last_pre_strike_combined.png)
+
+This is the key pre-strike reference image. In the current history, the school and the smaller military base are not yet present here as separate ways, while the broader barracks boundary remains the main military-tagged pre-strike polygon.
 
 ![First post-strike combined map](results/state_maps/first_post_strike_combined.png)
 
+This panel shows the first available post-strike state for each way. It makes the map clarification visible by showing when the school and smaller military-base polygons first appear as distinct objects in OSM.
+
 ![Conflation risk summary](results/conflation_risk.png)
+
+This figure turns the edit history into a brief interpretive summary. The current audit score is High (86/100), driven mainly by the existence of a broader pre-strike barracks perimeter and the post-strike arrival of more explicit school and smaller military-base mapping.
 
 ## Pre-strike State Comparison
 
@@ -101,6 +115,7 @@ The current indicator score rates the OSM record as **High** concern for conflat
 - `results/way_942760673_geometry_overlay.png`
 - `results/way_942760673_history_analysis.csv`
 - `results/way_942760673_timeline.png`
+- `results/way_history_animation.gif`
 - `results/way_history_summary.csv`
 
 ## Reproducibility / How to Run

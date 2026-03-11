@@ -1,7 +1,7 @@
 {
   "project_title": "OpenStreetMap History Audit: Shajareh Tayyebeh Girls' School and Adjacent Military Mapping in Minab, Iran",
   "strike_date": "2026-02-28T00:00:00+00:00",
-  "generated_at": "2026-03-11T10:49:20.775210+00:00",
+  "generated_at": "2026-03-11T11:00:03.145129+00:00",
   "ways": {
     "1485767423": {
       "metadata": {
@@ -266,6 +266,7 @@
     "results/way_942760673_geometry_overlay.png",
     "results/way_942760673_history_analysis.csv",
     "results/way_942760673_timeline.png",
+    "results/way_history_animation.gif",
     "results/way_history_summary.csv"
   ]
 }
