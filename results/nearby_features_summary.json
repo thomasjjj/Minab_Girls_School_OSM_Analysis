@@ -179,71 +179,36 @@
     ]
   },
   "current": {
-    "total_features": 1021,
+    "total_features": 413,
     "by_category": {
-      "civilian_sensitive": 2,
-      "civilian_general": 12,
-      "military_security": 14,
+      "civilian_sensitive": 0,
+      "civilian_general": 9,
+      "military_security": 1,
       "government_institutional": 4,
-      "infrastructure_access": 142,
-      "unknown": 847
+      "infrastructure_access": 73,
+      "unknown": 326
     },
     "by_radius": {
-      "50": 26,
-      "100": 127,
-      "250": 647,
-      "500": 993
+      "50": 1,
+      "100": 7,
+      "250": 81,
+      "500": 385
     },
     "named_features": [
       {
-        "name": "سید الشهدا-عاصف",
-        "category": "military_security",
-        "distance_m": 65.0
-      },
-      {
-        "name": "Shajareh Tayyebeh girls' elementary school",
-        "category": "civilian_sensitive",
-        "distance_m": 88.0
-      },
-      {
-        "name": "رسالت نهم",
-        "category": "infrastructure_access",
-        "distance_m": 89.2
-      },
-      {
         "name": "پادگان سید الشهدا-عاصف",
         "category": "military_security",
-        "distance_m": 136.2
-      },
-      {
-        "name": "داروخانه دکتر محمد قادری",
-        "category": "civilian_general",
-        "distance_m": 145.5
+        "distance_m": 77.2
       },
       {
         "name": "رسالت نهم",
         "category": "infrastructure_access",
-        "distance_m": 168.0
+        "distance_m": 105.0
       },
       {
-        "name": "کافه فست فود سان ست",
+        "name": "آهن آلات  محمودی",
         "category": "civilian_general",
-        "distance_m": 186.6
-      },
-      {
-        "name": "مجتمع فرهنگی سیدالشهدا سپاه",
-        "category": "unknown",
-        "distance_m": 195.3
-      },
-      {
-        "name": "مجتمع فرهنگی سیدالشهدا سپاه",
-        "category": "civilian_general",
-        "distance_m": 207.9
-      },
-      {
-        "name": "کلینیک کشاورزی مروارید",
-        "category": "civilian_general",
-        "distance_m": 213.9
+        "distance_m": 219.4
       },
       {
         "name": "بلوار رسالت",
@@ -251,24 +216,24 @@
         "distance_m": 235.1
       },
       {
-        "name": "آهن آلات و مصالح ساختمانی محمودی",
-        "category": "civilian_general",
-        "distance_m": 238.8
-      },
-      {
         "name": "بلوار رسالت",
         "category": "infrastructure_access",
         "distance_m": 264.1
       },
       {
+        "name": "کلینیک کشاورزی مروارید",
+        "category": "civilian_general",
+        "distance_m": 268.6
+      },
+      {
         "name": "رسالت دهم",
         "category": "infrastructure_access",
-        "distance_m": 270.3
+        "distance_m": 275.3
       },
       {
         "name": "اداره آب و فاضلاب",
         "category": "government_institutional",
-        "distance_m": 291.5
+        "distance_m": 318.3
       },
       {
         "name": "اداره جهاد کشاورزی میناب",
@@ -278,17 +243,12 @@
       {
         "name": "اداره شیلات میناب",
         "category": "government_institutional",
-        "distance_m": 357.3
+        "distance_m": 358.3
       },
       {
         "name": "رسالت هشتم",
         "category": "infrastructure_access",
         "distance_m": 367.7
-      },
-      {
-        "name": "آهن آلات شیخ آبادی",
-        "category": "civilian_general",
-        "distance_m": 369.4
       },
       {
         "name": "مرکز تحقیقات کشاورزی شهرستان میناب",
@@ -298,12 +258,17 @@
       {
         "name": "رسالت یازدهم",
         "category": "infrastructure_access",
-        "distance_m": 377.7
+        "distance_m": 379.3
+      },
+      {
+        "name": "آهن آلات شیخ آبادی",
+        "category": "civilian_general",
+        "distance_m": 380.1
       },
       {
         "name": "رسالت دوازدهم",
         "category": "infrastructure_access",
-        "distance_m": 435.8
+        "distance_m": 434.1
       },
       {
         "name": "آهن آلات زارع",
@@ -331,11 +296,6 @@
         "distance_m": 491.5
       },
       {
-        "name": "کوچه ۶۴",
-        "category": "infrastructure_access",
-        "distance_m": 496.5
-      },
-      {
         "name": "تعمیرگاه جنوب",
         "category": "civilian_general",
         "distance_m": 498.3
@@ -343,13 +303,48 @@
       {
         "name": "پارک شهر",
         "category": "unknown",
-        "distance_m": 502.1
+        "distance_m": 499.2
+      },
+      {
+        "name": "کوچه ۶۴",
+        "category": "infrastructure_access",
+        "distance_m": 603.4
+      },
+      {
+        "name": "پریتقی-پزیتکی",
+        "category": "unknown",
+        "distance_m": 627.9
+      },
+      {
+        "name": "کریم آباد",
+        "category": "unknown",
+        "distance_m": 929.7
+      },
+      {
+        "name": "بلوار المهدی",
+        "category": "infrastructure_access",
+        "distance_m": 1058.2
+      },
+      {
+        "name": "بلوار المهدی",
+        "category": "infrastructure_access",
+        "distance_m": 1073.9
+      },
+      {
+        "name": "میناب",
+        "category": "civilian_general",
+        "distance_m": 2637.5
+      },
+      {
+        "name": "جاده ۹۱",
+        "category": "unknown",
+        "distance_m": 367658.2
       }
     ]
   },
   "comparison": {
-    "added": 627,
-    "removed": 19,
-    "unchanged": 394
+    "added": 0,
+    "removed": 0,
+    "unchanged": 413
   }
 }

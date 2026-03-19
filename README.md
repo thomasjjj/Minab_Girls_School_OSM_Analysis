@@ -4,16 +4,6 @@
 
 This repository is a post-incident OpenStreetMap history review focused on the mapping state around the strike on the Shajareh Tayyebeh girls' school in Minab on 28 February 2026. The outputs are intended for forensic, journalistic, and technical review, not operational analysis.
 
-This project started as an experiment to test the claim that the strike may have been assisted by AI. At first, I wanted to see whether I could use AI to reproduce the same targeting recommendation. I soon ran into a problem: post-strike reporting was so extensive that the model was already saturated with information about the incident, especially the fact that there was a school at the location. Even with strict instructions to apply a cutoff date, it was difficult to produce anything that resembled a genuine pre-strike simulation.
-
-Because of that, I changed direction. Rather than trying to replicate a targeting decision itself, I turned to OpenStreetMap, a popular and widely used open-source mapping platform, to examine what information was actually available in the mapping record. By scraping and analysing the history of edits, I could look at what was theoretically available to a decision-making system at the time, whether human, AI-assisted, or fully automated.
-
-What appears from that history is a clear surge in information after the strike that more sharply differentiates the school from the nearby military base, while the picture before and up to the strike remains much more ambiguous. This does not prove that OpenStreetMap was used in the strike process, but it does offer a useful way of testing how incomplete or unclear open-source mapping could contribute to misidentification where proper verification, protected-site checks, and due diligence are absent.
-
-Several assumptions could be made from this analysis and I would like to make some clarifications:
-- firstly, this looks solely at OpenStreetMap data but makes no claim as to whether OSM was used in targetting. 
-- secondly, this looks at information in hindsight, including information after international focus on the location. Data was less available prior to this time, as can be seen in the timestamped images.  
-
 ## Methodology
 
 OpenStreetMap (OSM) is a collaborative map database that stores geographic features as editable objects with version history. A **way** in OSM is an ordered list of nodes: it can represent a line, such as a road or wall, or a closed polygon, such as a school or compound perimeter.
@@ -38,6 +28,9 @@ The analytical divider used by this run is **2026-02-28 00:00:00 UTC**. The scri
 - The smaller suspected compound polygon also appears only after the strike, first at 2026-03-05 18:06:31 UTC.
 - The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.
 - The school and compound polygons share 5 boundary node(s), meaning they were explicitly drawn as adjacent with touching edges in the post-strike OSM record.
+- Using the latest building layer as a fixed reference, the pre-strike barracks boundary would sweep 34 building-tagged OSM element(s) into the site list.
+- That replayed pre-strike list would include 3 building(s) in the later school polygon, 18 in the later compound polygon, and 13 that fall outside the latest barracks boundary.
+- Once the barracks boundary is revised to its first post-strike shape, the replayed building count changes from 34 to 19, showing how the boundary update alone changes the list of buildings captured by a site query.
 - Overall OSM conflation-risk rating from these indicators: High.
 - Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026.
 
@@ -87,6 +80,48 @@ This side-by-side comparison is the key visual. The left panel shows the last pr
 
 This figure turns the edit history and spatial analysis into a brief interpretive summary. The current qualitative audit rating is High, driven by the combination of pre-strike mapping gaps and post-strike clarification.
 
+## Boundary Building Audit
+
+This section uses two related checks. First, it runs the historical building query literally at each barracks milestone timestamp. Second, it replays the latest building-tagged layer against each historical barracks boundary as a proof-of-concept for how a boundary-only workflow could have swept later-clarified buildings into the site list.
+
+- Using the latest building layer as a fixed reference, the pre-strike barracks boundary would sweep 34 building-tagged OSM element(s) into the site list.
+- That replayed pre-strike list would include 3 building(s) in the later school polygon, 18 in the later compound polygon, and 13 that fall outside the latest barracks boundary.
+- Once the barracks boundary is revised to its first post-strike shape, the replayed building count changes from 34 to 19, showing how the boundary update alone changes the list of buildings captured by a site query.
+- By the latest boundary stage, the replayed building list settles at 19 building(s), compared with 34 under the broader pre-strike boundary.
+- A barracks-boundary building query at last pre-strike would have returned 0 building-tagged OSM element(s).
+- The number of buildings returned by the barracks boundary changes from 0 at the pre-strike stage to 19 at the latest stage, showing that the site boundary revision materially changes which buildings are swept into the site list.
+
+### Historical snapshot query
+
+| Stage | Boundary | Snapshot | Buildings returned | Later school polygon | Later compound polygon | Barracks-only | Outside latest |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| First mapped | v1 (2021-05-14 02:59:17 UTC) | ok | 0 | 0 | 0 | 0 | 0 |
+| Last pre-strike | v2 (2021-05-19 02:17:22 UTC) | ok | 0 | 0 | 0 | 0 | 0 |
+| First post-strike | v3 (2026-03-03 03:03:10 UTC) | ok | 0 | 0 | 0 | 0 | 0 |
+| Latest | v13 (2026-03-07 22:56:51 UTC) | ok | 19 | 0 | 0 | 19 | 0 |
+
+- Using the latest building layer as a fixed reference, the pre-strike barracks boundary would sweep 34 building-tagged OSM element(s) into the site list.
+- That replayed pre-strike list would include 3 building(s) in the later school polygon, 18 in the later compound polygon, and 13 that fall outside the latest barracks boundary.
+- Once the barracks boundary is revised to its first post-strike shape, the replayed building count changes from 34 to 19, showing how the boundary update alone changes the list of buildings captured by a site query.
+- By the latest boundary stage, the replayed building list settles at 19 building(s), compared with 34 under the broader pre-strike boundary.
+
+### Latest-building replay against each boundary stage
+
+| Stage | Boundary | Buildings captured | Later school polygon | Later compound polygon | Barracks-only | Outside latest |
+| --- | --- | --- | --- | --- | --- | --- |
+| First mapped | v1 (2021-05-14 02:59:17 UTC) | 34 | 3 | 18 | 0 | 13 |
+| Last pre-strike | v2 (2021-05-19 02:17:22 UTC) | 34 | 3 | 18 | 0 | 13 |
+| First post-strike | v3 (2026-03-03 03:03:10 UTC) | 19 | 0 | 0 | 19 | 0 |
+| Latest | v13 (2026-03-07 22:56:51 UTC) | 19 | 0 | 0 | 19 | 0 |
+
+![Boundary building stages](results/site_boundary_building_stages.png)
+
+Each panel replays the latest building-tagged layer against the barracks boundary at that milestone. Points are coloured by where those building centers sit relative to the later school, compound, and latest barracks polygons.
+
+![Boundary building counts](results/site_boundary_building_counts.png)
+
+The stacked counts quantify how the boundary revision changes which later-known buildings would be swept into the site list, and whether those captured buildings are generic `building=*` features or explicitly school- / military-related tags.
+
 ## Local OSM Context and CDE-Relevant Information Environment
 
 This section reconstructs the local OpenStreetMap information environment within 500m of the analysis centroid (27.10891, 57.08449) to test what a collateral damage estimation (CDE) process relying on OSM data might have seen from a historical snapshot taken one week before strike (2026-02-21) and from the current record.
@@ -94,11 +129,11 @@ This section reconstructs the local OpenStreetMap information environment within
 - **Historical query date**: 2026-02-21T00:00:00Z (one week before strike)
 - **Strike date**: 2026-02-28T00:00:00+00:00
 - **Pre-strike features found**: 413 (of which 0 civilian-sensitive, 1 military/security)
-- **Current features found**: 1021 (of which 2 civilian-sensitive, 14 military/security)
-- **Features added after strike**: 627
-- **Features removed after strike**: 19
+- **Current features found**: 413 (of which 0 civilian-sensitive, 1 military/security)
+- **Features added after strike**: 0
+- **Features removed after strike**: 0
 
-**Would a pre-strike CDE query have flagged civilian-sensitive features nearby?** **No**: zero civilian-sensitive features were present in the pre-strike OSM record within 500m. The current record now shows 2.
+**Would a pre-strike CDE query have flagged civilian-sensitive features nearby?** **No**: zero civilian-sensitive features were present in the pre-strike OSM record within 500m. The current record now shows 0.
 
 ![Pre-strike local context](results/local_context_prestrike.png)
 
@@ -106,7 +141,7 @@ This map shows the 413 OSM features within 500m of the analysis centroid as reco
 
 ![Current local context](results/local_context_current.png)
 
-The same view using the current OSM record, showing 1021 features. Comparing this current snapshot against the 2026-02-21 historical view reveals how the local information environment has changed since the strike.
+The same view using the current OSM record, showing 413 features. Comparing this current snapshot against the 2026-02-21 historical view reveals how the local information environment has changed since the strike.
 
 ![Local context comparison](results/local_context_comparison.png)
 
@@ -116,26 +151,26 @@ This comparison panel combines side-by-side maps with a feature density chart an
 
 | Name | Pre-strike | Current |
 | --- | --- | --- |
-| Shajareh Tayyebeh girls' elementary school |  | civilian_sensitive (88m) |
-| آهن آلات  محمودی | civilian_general (219m) |  |
+| آهن آلات  محمودی | civilian_general (219m) | civilian_general (219m) |
 | آهن آلات زارع | civilian_general (447m) | civilian_general (447m) |
-| آهن آلات شیخ آبادی | civilian_general (380m) | civilian_general (369m) |
-| آهن آلات و مصالح ساختمانی محمودی |  | civilian_general (239m) |
-| اداره آب و فاضلاب | government_institutional (318m) | government_institutional (292m) |
+| آهن آلات شیخ آبادی | civilian_general (380m) | civilian_general (380m) |
+| اداره آب و فاضلاب | government_institutional (318m) | government_institutional (318m) |
 | اداره جهاد کشاورزی میناب | government_institutional (329m) | government_institutional (329m) |
-| اداره شیلات میناب | government_institutional (358m) | government_institutional (357m) |
-| بلوار المهدی | infrastructure_access (1074m) |  |
+| اداره شیلات میناب | government_institutional (358m) | government_institutional (358m) |
+| بلوار المهدی | infrastructure_access (1074m) | infrastructure_access (1074m) |
 | بلوار رسالت | infrastructure_access (264m) | infrastructure_access (264m) |
 | تعمیرگاه جنوب | civilian_general (498m) | civilian_general (498m) |
-| جاده ۹۱ | unknown (367658m) |  |
-| داروخانه دکتر محمد قادری |  | civilian_general (146m) |
-| رسالت دهم | infrastructure_access (275m) | infrastructure_access (270m) |
-| رسالت دوازدهم | infrastructure_access (434m) | infrastructure_access (436m) |
-| رسالت نهم | infrastructure_access (105m) | infrastructure_access (168m) |
+| جاده ۹۱ | unknown (367658m) | unknown (367658m) |
+| رسالت دهم | infrastructure_access (275m) | infrastructure_access (275m) |
+| رسالت دوازدهم | infrastructure_access (434m) | infrastructure_access (434m) |
+| رسالت نهم | infrastructure_access (105m) | infrastructure_access (105m) |
 | رسالت هشتم | infrastructure_access (368m) | infrastructure_access (368m) |
-| رسالت یازدهم | infrastructure_access (379m) | infrastructure_access (378m) |
+| رسالت یازدهم | infrastructure_access (379m) | infrastructure_access (379m) |
 | سوپرمارکت مالک حسن پور | civilian_general (458m) | civilian_general (458m) |
-| سید الشهدا-عاصف |  | military_security (65m) |
+| لوله و اتصالات ناظری | civilian_general (487m) | civilian_general (487m) |
+| محله پریتقی | unknown (473m) | unknown (473m) |
+| مرکز تحقیقات کشاورزی شهرستان میناب | government_institutional (374m) | government_institutional (374m) |
+| میناب | civilian_general (2638m) | civilian_general (2638m) |
 
 ## Pre-strike State Comparison
 
@@ -153,6 +188,8 @@ The current qualitative audit rating for conflation risk is **High**. In this re
 
 - Way history is fetched from the OpenStreetMap API for each configured way ID.
 - Geometry is reconstructed from node history by selecting the latest coordinate-bearing node version at or before each way version timestamp where possible.
+- The boundary building audit uses OSM element centers for historical snapshot filtering; it does not reconstruct full historical building footprints.
+- Overpass mirror freshness can vary for broader current-state context queries, so local-context totals may differ across reruns.
 - Rows that required fallback geometry or had missing node coordinates are flagged in the CSV outputs.
 - This repository remains framed as post-incident mapping-history review for audit and explanation, not operational analysis.
 
@@ -173,6 +210,15 @@ The current qualitative audit rating for conflation risk is **High**. In this re
 - `results/nearby_features_summary.json`
 - `results/perimeter_comparison.png`
 - `results/results.txt`
+- `results/site_boundary_building_counts.png`
+- `results/site_boundary_building_presence.csv`
+- `results/site_boundary_building_replay_by_stage.csv`
+- `results/site_boundary_building_replay_presence.csv`
+- `results/site_boundary_building_replay_stage_summary.csv`
+- `results/site_boundary_building_stage_summary.csv`
+- `results/site_boundary_building_stages.png`
+- `results/site_boundary_buildings_by_stage.csv`
+- `results/site_boundary_buildings_summary.json`
 - `results/state_maps/first_post_strike_combined.png`
 - `results/state_maps/first_post_strike_way_1484791929.png`
 - `results/state_maps/first_post_strike_way_1485767423.png`
@@ -198,6 +244,7 @@ The current qualitative audit rating for conflation risk is **High**. In this re
 - `results/way_942760673_geometry_overlay.png`
 - `results/way_942760673_history_analysis.csv`
 - `results/way_942760673_timeline.png`
+- `results/way_history_animation.gif`
 - `results/way_history_summary.csv`
 
 ## Reproducibility / How to Run

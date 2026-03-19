@@ -79,6 +79,49 @@ LOCAL_CONTEXT_RADII_M = [50, 100, 250, 500]
 LOCAL_CONTEXT_QUERY_RADIUS_M = 500
 LOCAL_CONTEXT_PRESTRIKE_OFFSET_DAYS = 7
 OVERPASS_API_URL = "https://overpass-api.de/api/interpreter"
+OVERPASS_FALLBACK_API_URLS = [
+    OVERPASS_API_URL,
+    "https://overpass.kumi.systems/api/interpreter",
+]
+OVERPASS_MIN_INTERVAL_SECONDS = 6.0
+BUILDING_AUDIT_WAY_ID = 942760673
+BUILDING_AUDIT_TAG_FILTER = '["building"]'
+BUILDING_ASSIGNMENT_ORDER = [
+    "later_school_polygon",
+    "later_compound_polygon",
+    "latest_barracks_only",
+    "outside_latest_barracks",
+]
+BUILDING_ASSIGNMENT_LABELS = {
+    "later_school_polygon": "Later school polygon",
+    "later_compound_polygon": "Later compound polygon",
+    "latest_barracks_only": "Latest barracks-only area",
+    "outside_latest_barracks": "Outside latest barracks",
+}
+BUILDING_ASSIGNMENT_COLORS = {
+    "later_school_polygon": "#1976D2",
+    "later_compound_polygon": "#00ACC1",
+    "latest_barracks_only": "#FB8C00",
+    "outside_latest_barracks": "#D32F2F",
+}
+BUILDING_SEMANTIC_ORDER = [
+    "generic_building",
+    "school_related",
+    "military_related",
+    "other_tagged_building",
+]
+BUILDING_SEMANTIC_LABELS = {
+    "generic_building": "Generic building",
+    "school_related": "School-related",
+    "military_related": "Military-related",
+    "other_tagged_building": "Other tagged building",
+}
+BUILDING_SEMANTIC_COLORS = {
+    "generic_building": "#757575",
+    "school_related": "#1976D2",
+    "military_related": "#EF6C00",
+    "other_tagged_building": "#8E24AA",
+}
 
 CDE_CATEGORIES = {
     "civilian_sensitive": {
@@ -150,6 +193,7 @@ CDE_CATEGORY_LABELS["unknown"] = "Unknown / unclassified"
 SESSION = requests.Session()
 SESSION.headers.update({"User-Agent": "IranGirlsSchoolHistoryAudit/2.0"})
 TILE_CACHE = {}
+LAST_OVERPASS_REQUEST_TS = None
 
 
 def parse_args():
@@ -332,6 +376,57 @@ def polygon_contains_polygon(outer_coords, inner_coords):
     inner_xy = latlon_to_local_xy(inner_coords, reference)
     inside_count = sum(1 for pt in inner_xy if point_in_polygon_xy(pt, outer_xy))
     return inside_count / len(inner_xy) if inner_xy else None
+
+
+def point_in_polygon(point, polygon_coords):
+    """Check whether a latitude/longitude point falls inside a polygon."""
+    if point is None or not polygon_coords or len(polygon_coords) < 3:
+        return False
+    all_points = list(polygon_coords) + [point]
+    reference = (
+        sum(lat for lat, _ in all_points) / len(all_points),
+        sum(lon for _, lon in all_points) / len(all_points),
+    )
+    polygon_xy = latlon_to_local_xy(close_coords(polygon_coords), reference)
+    point_xy = latlon_to_local_xy([point], reference)[0]
+    return point_in_polygon_xy(point_xy, polygon_xy)
+
+
+def feature_name(tags):
+    return tags.get("name") or tags.get("name:en") or tags.get("name:fa") or ""
+
+
+def classify_building_semantics(tags):
+    if not tags:
+        return "other_tagged_building"
+
+    building_value = (tags.get("building") or "").strip().lower()
+    amenity_value = (tags.get("amenity") or "").strip().lower()
+    education_value = (tags.get("education") or "").strip().lower()
+    landuse_value = (tags.get("landuse") or "").strip().lower()
+    military_value = (tags.get("military") or "").strip().lower()
+
+    if building_value == "school" or amenity_value == "school" or education_value == "school":
+        return "school_related"
+    if building_value in {"military", "barracks"} or military_value or landuse_value == "military":
+        return "military_related"
+    if building_value in {"", "yes"}:
+        return "generic_building"
+    return "other_tagged_building"
+
+
+def classify_building_assignment(point, reference_polygons):
+    school_coords = reference_polygons.get("school", [])
+    compound_coords = reference_polygons.get("compound", [])
+    barracks_coords = reference_polygons.get("barracks", [])
+
+    if point_in_polygon(point, school_coords):
+        return "later_school_polygon"
+    if point_in_polygon(point, compound_coords):
+        return "later_compound_polygon"
+    if point_in_polygon(point, barracks_coords):
+        return "latest_barracks_only"
+    return "outside_latest_barracks"
 
 
 def find_shared_nodes(node_refs_a, node_refs_b):
@@ -1627,25 +1722,57 @@ def build_overpass_query(center_lat, center_lon, radius_m, date_iso=None):
     )
 
 
+def build_overpass_bbox_query(bounds, date_iso=None, tag_filter=""):
+    """Construct an Overpass QL query for features in a bounding box."""
+    min_lat, max_lat, min_lon, max_lon = bounds
+    date_clause = f'[date:"{date_iso}"]' if date_iso else ""
+    return (
+        f"[out:json][timeout:90]{date_clause};\n"
+        f"(\n"
+        f"  nwr{tag_filter}({min_lat:.7f},{min_lon:.7f},{max_lat:.7f},{max_lon:.7f});\n"
+        f");\n"
+        f"out center tags;\n"
+    )
+
+
 def fetch_overpass(query_string):
     """POST query to Overpass API with retry logic."""
+    global LAST_OVERPASS_REQUEST_TS
+    last_errors = []
     for attempt in range(3):
-        try:
-            response = SESSION.post(
-                OVERPASS_API_URL,
-                data={"data": query_string},
-                timeout=120,
-            )
-            response.raise_for_status()
-            return response.json()
-        except requests.RequestException as exc:
-            if attempt < 2:
-                wait = 10 * (attempt + 1)
-                print(f"Overpass query attempt {attempt + 1} failed ({exc}), retrying in {wait}s...")
-                time.sleep(wait)
-            else:
-                print(f"Warning: Overpass query failed after 3 attempts ({exc}). Continuing with empty results.")
-                return {"elements": []}
+        for endpoint in OVERPASS_FALLBACK_API_URLS:
+            try:
+                if LAST_OVERPASS_REQUEST_TS is not None:
+                    elapsed = time.monotonic() - LAST_OVERPASS_REQUEST_TS
+                    if elapsed < OVERPASS_MIN_INTERVAL_SECONDS:
+                        wait_time = OVERPASS_MIN_INTERVAL_SECONDS - elapsed
+                        print(f"Waiting {wait_time:.1f}s before Overpass request...")
+                        time.sleep(wait_time)
+                response = SESSION.post(
+                    endpoint,
+                    data={"data": query_string},
+                    timeout=120,
+                )
+                LAST_OVERPASS_REQUEST_TS = time.monotonic()
+                response.raise_for_status()
+                if endpoint != OVERPASS_API_URL:
+                    print(f"Using fallback Overpass endpoint: {endpoint}")
+                return response.json()
+            except requests.RequestException as exc:
+                LAST_OVERPASS_REQUEST_TS = time.monotonic()
+                last_errors.append(f"{endpoint}: {exc}")
+                if endpoint != OVERPASS_FALLBACK_API_URLS[-1]:
+                    print(f"Overpass endpoint {endpoint} failed ({exc}), trying fallback mirror...")
+                    continue
+
+        if attempt < 2:
+            wait = 10 * (attempt + 1)
+            print(f"Overpass query attempt {attempt + 1} failed across all endpoints, retrying in {wait}s...")
+            time.sleep(wait)
+        else:
+            error_text = " | ".join(last_errors[-len(OVERPASS_FALLBACK_API_URLS):]) if last_errors else "unknown error"
+            print(f"Warning: Overpass query failed after 3 attempts ({error_text}). Continuing with empty results.")
+            return {"elements": [], "_fetch_failed": True, "_error": error_text}
 
 
 def classify_osm_element(tags):
@@ -2071,6 +2198,743 @@ def plot_local_context_comparison(df_pre, df_current, center_lat, center_lon, ra
     plt.close()
 
 
+def extract_buildings_within_boundary(overpass_response, boundary_coords, milestone_key, milestone_row,
+                                      reference_polygons):
+    """Return building-tagged OSM elements whose centers fall inside the boundary polygon."""
+    if not boundary_coords or len(boundary_coords) < 3:
+        return []
+
+    boundary_centroid = geometry_centroid(boundary_coords) or boundary_coords[0]
+    boundary_area_sq_m = polygon_area_sq_m(boundary_coords)
+    boundary_perimeter_m = polygon_perimeter_m(boundary_coords)
+    elements = overpass_response.get("elements", [])
+    features = []
+
+    for elem in elements:
+        elem_type = elem.get("type", "")
+        osm_id = elem.get("id")
+        tags = elem.get("tags", {})
+        if elem_type == "node":
+            lat = elem.get("lat")
+            lon = elem.get("lon")
+        else:
+            center = elem.get("center", {})
+            lat = center.get("lat")
+            lon = center.get("lon")
+
+        if lat is None or lon is None:
+            continue
+
+        point = (lat, lon)
+        if not point_in_polygon(point, boundary_coords):
+            continue
+
+        xy = latlon_to_local_xy([point], boundary_centroid)
+        distance_m = math.hypot(xy[0][0], xy[0][1]) if xy else None
+        later_assignment = classify_building_assignment(point, reference_polygons)
+        building_semantics = classify_building_semantics(tags)
+
+        features.append(
+            {
+                "stage_key": milestone_key,
+                "stage_label": MILESTONE_LABELS[milestone_key],
+                "boundary_way_id": BUILDING_AUDIT_WAY_ID,
+                "boundary_way_label": way_label(BUILDING_AUDIT_WAY_ID),
+                "boundary_version": int(milestone_row["version"]),
+                "snapshot_timestamp": milestone_row["timestamp"],
+                "snapshot_timestamp_iso": iso_timestamp(milestone_row["timestamp"]),
+                "boundary_area_sq_m": safe_float(boundary_area_sq_m),
+                "boundary_perimeter_m": safe_float(boundary_perimeter_m),
+                "element_type": elem_type,
+                "osm_id": osm_id,
+                "name": feature_name(tags),
+                "lat": lat,
+                "lon": lon,
+                "distance_to_boundary_centroid_m": round(distance_m, 1) if distance_m is not None else None,
+                "building_tag": tags.get("building", ""),
+                "building_semantics": building_semantics,
+                "building_semantics_label": BUILDING_SEMANTIC_LABELS[building_semantics],
+                "later_assignment": later_assignment,
+                "later_assignment_label": BUILDING_ASSIGNMENT_LABELS[later_assignment],
+                "cde_category": classify_osm_element(tags),
+                "tags_str": "; ".join(f"{k}={v}" for k, v in sorted(tags.items())),
+            }
+        )
+
+    sort_order = {key: index for index, key in enumerate(BUILDING_ASSIGNMENT_ORDER)}
+    features.sort(
+        key=lambda item: (
+            sort_order.get(item["later_assignment"], 999),
+            item["distance_to_boundary_centroid_m"] if item["distance_to_boundary_centroid_m"] is not None else 999999,
+            item["element_type"],
+            item["osm_id"] or 0,
+        )
+    )
+    for index, feature in enumerate(features, start=1):
+        feature["stage_rank"] = index
+    return features
+
+
+def summarise_building_stage(milestone_key, milestone_row, stage_features, query_failed=False, query_error=""):
+    assignment_counts = {key: 0 for key in BUILDING_ASSIGNMENT_ORDER}
+    semantic_counts = {key: 0 for key in BUILDING_SEMANTIC_ORDER}
+    for feature in stage_features:
+        assignment_counts[feature["later_assignment"]] = assignment_counts.get(feature["later_assignment"], 0) + 1
+        semantic_counts[feature["building_semantics"]] = semantic_counts.get(feature["building_semantics"], 0) + 1
+
+    row = {
+        "stage_key": milestone_key,
+        "stage_label": MILESTONE_LABELS[milestone_key],
+        "boundary_version": int(milestone_row["version"]),
+        "boundary_timestamp": milestone_row["timestamp"],
+        "boundary_timestamp_iso": iso_timestamp(milestone_row["timestamp"]),
+        "building_count": len(stage_features),
+        "named_building_count": int(sum(1 for feature in stage_features if feature["name"])),
+        "query_failed": bool(query_failed),
+        "query_error": query_error or "",
+        "reassignment_risk_count": int(
+            assignment_counts["later_school_polygon"]
+            + assignment_counts["later_compound_polygon"]
+            + assignment_counts["outside_latest_barracks"]
+        ),
+    }
+    for key in BUILDING_ASSIGNMENT_ORDER:
+        row[f"{key}_count"] = int(assignment_counts[key])
+    for key in BUILDING_SEMANTIC_ORDER:
+        row[f"{key}_count"] = int(semantic_counts[key])
+    return row
+
+
+def build_building_presence_df(buildings_df):
+    if buildings_df.empty:
+        return pd.DataFrame(
+            columns=[
+                "element_type",
+                "osm_id",
+                "name",
+                "building_tag",
+                "building_semantics",
+                "building_semantics_label",
+                "later_assignment",
+                "later_assignment_label",
+                "tags_str",
+                "stages_present_count",
+                "stages_present",
+                "first_seen_stage",
+                "last_seen_stage",
+            ]
+            + MILESTONE_ORDER
+        )
+
+    key_cols = ["element_type", "osm_id"]
+    ordered = buildings_df.sort_values(["snapshot_timestamp", "stage_rank"]).copy()
+    latest_meta = (
+        ordered.groupby(key_cols, as_index=False)
+        .tail(1)[
+            [
+                "element_type",
+                "osm_id",
+                "name",
+                "building_tag",
+                "building_semantics",
+                "building_semantics_label",
+                "later_assignment",
+                "later_assignment_label",
+                "tags_str",
+            ]
+        ]
+    )
+
+    presence = ordered.assign(present=True).pivot_table(
+        index=key_cols,
+        columns="stage_key",
+        values="present",
+        aggfunc="max",
+        fill_value=False,
+    )
+    presence = presence.reset_index()
+    for milestone_key in MILESTONE_ORDER:
+        if milestone_key not in presence.columns:
+            presence[milestone_key] = False
+        presence[milestone_key] = presence[milestone_key].astype(bool)
+
+    result = latest_meta.merge(presence, on=key_cols, how="left")
+    result["stages_present_count"] = result[MILESTONE_ORDER].sum(axis=1)
+    result["stages_present"] = result.apply(
+        lambda row: ", ".join(MILESTONE_LABELS[key] for key in MILESTONE_ORDER if bool(row[key])),
+        axis=1,
+    )
+    result["first_seen_stage"] = result.apply(
+        lambda row: next((MILESTONE_LABELS[key] for key in MILESTONE_ORDER if bool(row[key])), ""),
+        axis=1,
+    )
+    result["last_seen_stage"] = result.apply(
+        lambda row: next((MILESTONE_LABELS[key] for key in reversed(MILESTONE_ORDER) if bool(row[key])), ""),
+        axis=1,
+    )
+    return result.sort_values(
+        ["later_assignment", "building_semantics", "element_type", "osm_id"]
+    ).reset_index(drop=True)
+
+
+def build_building_audit_summary(stage_df, presence_df):
+    summary = {
+        "site_way_id": BUILDING_AUDIT_WAY_ID,
+        "site_label": way_label(BUILDING_AUDIT_WAY_ID),
+        "method": {
+            "snapshot_source": "Overpass historical snapshots taken at each barracks milestone timestamp",
+            "inclusion_rule": "building-tagged OSM elements whose center lies inside the barracks boundary polygon at that stage",
+            "later_assignment_rule": "each returned building center is then classified against the latest school, compound, and barracks polygons to show later clarification",
+        },
+        "stages": [],
+        "unique_building_elements": 0 if presence_df.empty else int(len(presence_df)),
+        "findings": [],
+    }
+
+    if not stage_df.empty:
+        ordered = stage_df.copy()
+        ordered["stage_order"] = ordered["stage_key"].map({key: index for index, key in enumerate(MILESTONE_ORDER)})
+        ordered = ordered.sort_values("stage_order")
+        summary["stages"] = [
+            {key: json_ready(value) for key, value in row.items() if key != "stage_order"}
+            for row in ordered.to_dict(orient="records")
+        ]
+        stage_by_key = {row["stage_key"]: row for row in ordered.to_dict(orient="records")}
+        failed_stages = [row for row in ordered.to_dict(orient="records") if row.get("query_failed")]
+        if failed_stages:
+            failed_labels = ", ".join(row["stage_label"] for row in failed_stages)
+            summary["findings"].append(
+                f"Overpass did not return a usable building snapshot for: {failed_labels}. Those stages are marked as unavailable rather than interpreted as true zero-building results."
+            )
+
+        pre_row = stage_by_key.get("last_pre_strike") or stage_by_key.get("first_version")
+        post_row = stage_by_key.get("first_post_strike")
+        latest_row = stage_by_key.get("latest")
+
+        if pre_row is not None:
+            if pre_row.get("query_failed"):
+                summary["findings"].append(
+                    f"The {pre_row['stage_label'].lower()} building snapshot could not be fetched cleanly from Overpass, so the pre-strike building count should be treated as unavailable."
+                )
+            else:
+                summary["findings"].append(
+                    f"A barracks-boundary building query at {pre_row['stage_label'].lower()} would have returned "
+                    f"{int(pre_row['building_count'])} building-tagged OSM element(s)."
+                )
+                if int(pre_row["reassignment_risk_count"]) > 0:
+                    summary["findings"].append(
+                        f"Of those pre-strike returned buildings, {int(pre_row['later_school_polygon_count'])} later fall "
+                        f"inside the mapped school polygon, {int(pre_row['later_compound_polygon_count'])} inside the "
+                        f"mapped compound polygon, and {int(pre_row['outside_latest_barracks_count'])} outside the latest "
+                        f"barracks boundary."
+                    )
+                if int(pre_row["generic_building_count"]) > 0:
+                    summary["findings"].append(
+                        f"The pre-strike returned set is dominated by generic building tags: "
+                        f"{int(pre_row['generic_building_count'])} of {int(pre_row['building_count'])} are simply generic "
+                        f"building features rather than explicitly school- or military-tagged structures."
+                    )
+
+        if (
+            pre_row is not None
+            and latest_row is not None
+            and not pre_row.get("query_failed")
+            and not latest_row.get("query_failed")
+            and int(pre_row["building_count"]) != int(latest_row["building_count"])
+        ):
+            summary["findings"].append(
+                f"The number of buildings returned by the barracks boundary changes from {int(pre_row['building_count'])} "
+                f"at the pre-strike stage to {int(latest_row['building_count'])} at the latest stage, showing that the "
+                f"site boundary revision materially changes which buildings are swept into the site list."
+            )
+
+        if (
+            post_row is not None
+            and not post_row.get("query_failed")
+            and int(post_row["later_school_polygon_count"]) == 0
+            and int(post_row["later_compound_polygon_count"]) == 0
+        ):
+            summary["findings"].append(
+                "Once the post-strike barracks boundary is introduced, the returned building set no longer includes any "
+                "building centers that later fall inside the separately mapped school or compound polygons."
+            )
+
+    return summary
+
+
+def build_building_replay_summary(stage_df, presence_df):
+    summary = {
+        "stages": [],
+        "unique_building_elements": 0 if presence_df.empty else int(len(presence_df)),
+        "findings": [],
+        "method": {
+            "snapshot_source": "Latest building-tagged OSM layer replayed against each historical barracks boundary",
+            "inclusion_rule": "latest building-tagged OSM elements whose centers would fall inside each barracks boundary stage",
+            "purpose": "proof-of-concept showing how boundary-only listing could sweep later-clarified buildings into the site list",
+        },
+    }
+
+    if stage_df.empty:
+        return summary
+
+    ordered = stage_df.copy()
+    ordered["stage_order"] = ordered["stage_key"].map({key: index for index, key in enumerate(MILESTONE_ORDER)})
+    ordered = ordered.sort_values("stage_order")
+    summary["stages"] = [
+        {key: json_ready(value) for key, value in row.items() if key != "stage_order"}
+        for row in ordered.to_dict(orient="records")
+    ]
+    stage_by_key = {row["stage_key"]: row for row in ordered.to_dict(orient="records")}
+
+    pre_row = stage_by_key.get("last_pre_strike") or stage_by_key.get("first_version")
+    post_row = stage_by_key.get("first_post_strike")
+    latest_row = stage_by_key.get("latest")
+
+    if pre_row is not None and not pre_row.get("query_failed"):
+        summary["findings"].append(
+            f"Using the latest building layer as a fixed reference, the pre-strike barracks boundary would sweep "
+            f"{int(pre_row['building_count'])} building-tagged OSM element(s) into the site list."
+        )
+        if int(pre_row["reassignment_risk_count"]) > 0:
+            summary["findings"].append(
+                f"That replayed pre-strike list would include {int(pre_row['later_school_polygon_count'])} building(s) "
+                f"in the later school polygon, {int(pre_row['later_compound_polygon_count'])} in the later compound "
+                f"polygon, and {int(pre_row['outside_latest_barracks_count'])} that fall outside the latest barracks boundary."
+            )
+
+    if (
+        pre_row is not None
+        and post_row is not None
+        and not pre_row.get("query_failed")
+        and not post_row.get("query_failed")
+        and int(pre_row["building_count"]) != int(post_row["building_count"])
+    ):
+        summary["findings"].append(
+            f"Once the barracks boundary is revised to its first post-strike shape, the replayed building count changes from "
+            f"{int(pre_row['building_count'])} to {int(post_row['building_count'])}, showing how the boundary update alone "
+            f"changes the list of buildings captured by a site query."
+        )
+
+    if (
+        latest_row is not None
+        and pre_row is not None
+        and not latest_row.get("query_failed")
+        and not pre_row.get("query_failed")
+        and int(pre_row["building_count"]) != int(latest_row["building_count"])
+    ):
+        summary["findings"].append(
+            f"By the latest boundary stage, the replayed building list settles at {int(latest_row['building_count'])} "
+            f"building(s), compared with {int(pre_row['building_count'])} under the broader pre-strike boundary."
+        )
+
+    return summary
+
+
+def plot_building_stage_maps(stage_df, buildings_df, stage_geometries, reference_polygons, output_path):
+    if not stage_geometries:
+        save_note_figure(output_path, "Boundary building audit", "No stage geometries were available for the building audit.")
+        return
+
+    all_coords = []
+    for coords in stage_geometries.values():
+        all_coords.extend(coords)
+    for coords in reference_polygons.values():
+        all_coords.extend(coords)
+    if not buildings_df.empty:
+        all_coords.extend(list(zip(buildings_df["lat"], buildings_df["lon"])))
+
+    if not all_coords:
+        save_note_figure(output_path, "Boundary building audit", "No geometry or building points were available for plotting.")
+        return
+
+    basemap_image, basemap_info = build_basemap(expand_bounds(all_coords, padding_ratio=0.18))
+    fig, axes = plt.subplots(2, 2, figsize=(16, 13))
+    axes = axes.ravel()
+    stage_rows = {
+        row["stage_key"]: row
+        for row in stage_df.to_dict(orient="records")
+    }
+
+    for ax, milestone_key in zip(axes, MILESTONE_ORDER):
+        ax.imshow(basemap_image, origin="upper")
+        stage_row = stage_rows.get(milestone_key)
+        boundary_coords = stage_geometries.get(milestone_key, [])
+
+        if len(boundary_coords) >= 3:
+            boundary_points = geometry_to_pixel_points(close_coords(boundary_coords), basemap_info)
+            xs = [point[0] for point in boundary_points]
+            ys = [point[1] for point in boundary_points]
+            ax.fill(xs, ys, color=way_color_hex(BUILDING_AUDIT_WAY_ID), alpha=0.16)
+            ax.plot(xs, ys, color=way_color_hex(BUILDING_AUDIT_WAY_ID), linewidth=2.8, alpha=0.95)
+
+        latest_barracks = reference_polygons.get("barracks", [])
+        if len(latest_barracks) >= 3:
+            points = geometry_to_pixel_points(close_coords(latest_barracks), basemap_info)
+            ax.plot(
+                [point[0] for point in points],
+                [point[1] for point in points],
+                color="#8D6E63",
+                linewidth=1.6,
+                linestyle=":",
+                alpha=0.9,
+            )
+
+        for polygon_key, color in [("school", "#1976D2"), ("compound", "#00ACC1")]:
+            coords = reference_polygons.get(polygon_key, [])
+            if len(coords) < 3:
+                continue
+            points = geometry_to_pixel_points(close_coords(coords), basemap_info)
+            ax.plot(
+                [point[0] for point in points],
+                [point[1] for point in points],
+                color=color,
+                linewidth=1.8,
+                linestyle="--",
+                alpha=0.95,
+            )
+
+        if not buildings_df.empty:
+            subset = buildings_df[buildings_df["stage_key"] == milestone_key]
+            for assignment in BUILDING_ASSIGNMENT_ORDER:
+                assigned = subset[subset["later_assignment"] == assignment]
+                if assigned.empty:
+                    continue
+                pxs = []
+                pys = []
+                for _, row in assigned.iterrows():
+                    px, py = latlon_to_basemap_pixels(row["lat"], row["lon"], basemap_info)
+                    pxs.append(px)
+                    pys.append(py)
+                ax.scatter(
+                    pxs,
+                    pys,
+                    s=42,
+                    color=BUILDING_ASSIGNMENT_COLORS[assignment],
+                    edgecolors="white",
+                    linewidths=0.5,
+                    alpha=0.9,
+                    zorder=5,
+                )
+
+        if stage_row is not None:
+            title = (
+                f"{stage_row['stage_label']}\n"
+                f"v{int(stage_row['boundary_version'])} | {format_date(stage_row['boundary_timestamp'])} | "
+                f"{int(stage_row['building_count'])} building(s)"
+            )
+            if stage_row.get("query_failed"):
+                count_lines = [
+                    "Snapshot unavailable",
+                    compact_text(stage_row.get("query_error", ""), 72),
+                ]
+            else:
+                count_lines = [
+                    f"Later school: {int(stage_row['later_school_polygon_count'])}",
+                    f"Later compound: {int(stage_row['later_compound_polygon_count'])}",
+                    f"Barracks-only: {int(stage_row['latest_barracks_only_count'])}",
+                    f"Outside latest: {int(stage_row['outside_latest_barracks_count'])}",
+                ]
+            ax.text(
+                0.01,
+                0.99,
+                "\n".join(count_lines),
+                transform=ax.transAxes,
+                fontsize=8.2,
+                ha="left",
+                va="top",
+                bbox={"boxstyle": "round,pad=0.22", "facecolor": "white", "alpha": 0.92, "edgecolor": "#888888"},
+            )
+        else:
+            title = f"{MILESTONE_LABELS[milestone_key]}\nNo barracks state available"
+
+        ax.set_title(title, fontsize=10.5, fontweight="bold")
+        ax.set_xlim(0, basemap_info["width_px"])
+        ax.set_ylim(basemap_info["height_px"], 0)
+        ax.set_axis_off()
+
+    legend_handles = [
+        Line2D([0], [0], color=way_color_hex(BUILDING_AUDIT_WAY_ID), linewidth=2.8, label="Barracks boundary at that stage"),
+        Line2D([0], [0], color="#8D6E63", linewidth=1.6, linestyle=":", label="Latest barracks boundary"),
+        Line2D([0], [0], color="#1976D2", linewidth=1.8, linestyle="--", label="Latest school polygon"),
+        Line2D([0], [0], color="#00ACC1", linewidth=1.8, linestyle="--", label="Latest compound polygon"),
+    ]
+    legend_handles.extend(
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            color="none",
+            markerfacecolor=BUILDING_ASSIGNMENT_COLORS[key],
+            markeredgecolor="white",
+            markersize=8,
+            label=BUILDING_ASSIGNMENT_LABELS[key],
+        )
+        for key in BUILDING_ASSIGNMENT_ORDER
+    )
+    fig.legend(handles=legend_handles, loc="lower center", ncol=4, framealpha=0.96, fontsize=8.5)
+    fig.suptitle("Latest building layer replayed against each barracks boundary stage", fontsize=13, fontweight="bold", y=0.98)
+    fig.text(
+        0.01,
+        0.015,
+        "Points show building-tagged OSM elements from the latest available building layer, replayed against each "
+        "barracks boundary stage. Dashed outlines show the later school / compound clarification for audit context.",
+        fontsize=8,
+    )
+    fig.text(0.01, 0.003, "Basemap: OpenStreetMap | Data: Overpass latest-building replay", fontsize=7)
+    plt.tight_layout(rect=(0, 0.06, 1, 0.96))
+    plt.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close()
+
+
+def plot_building_stage_counts(stage_df, output_path):
+    if stage_df.empty:
+        save_note_figure(output_path, "Boundary building counts", "No building-stage summary rows were available.")
+        return
+
+    ordered = stage_df.copy()
+    ordered["stage_order"] = ordered["stage_key"].map({key: index for index, key in enumerate(MILESTONE_ORDER)})
+    ordered = ordered.sort_values("stage_order")
+    labels = [row["stage_label"].replace(" ", "\n") for _, row in ordered.iterrows()]
+    x = np.arange(len(labels))
+
+    fig, (ax_assignment, ax_semantics) = plt.subplots(1, 2, figsize=(15, 5.8), width_ratios=[1.25, 1])
+
+    bottom = np.zeros(len(ordered))
+    for key in BUILDING_ASSIGNMENT_ORDER:
+        values = ordered[f"{key}_count"].to_numpy()
+        ax_assignment.bar(
+            x,
+            values,
+            bottom=bottom,
+            color=BUILDING_ASSIGNMENT_COLORS[key],
+            edgecolor="white",
+            linewidth=0.6,
+            label=BUILDING_ASSIGNMENT_LABELS[key],
+        )
+        bottom += values
+    for idx, total in enumerate(ordered["building_count"].to_numpy()):
+        ax_assignment.text(idx, total + 0.15, str(int(total)), ha="center", va="bottom", fontsize=8)
+    for idx, failed in enumerate(ordered["query_failed"].to_numpy()):
+        if failed:
+            ax_assignment.text(idx, 0.3, "query\nfailed", ha="center", va="bottom", fontsize=7.5, color="#C62828")
+    ax_assignment.set_xticks(x)
+    ax_assignment.set_xticklabels(labels, fontsize=8)
+    ax_assignment.set_ylabel("Captured building count")
+    ax_assignment.set_title("Replayed buildings by later assignment", fontsize=10.5, fontweight="bold")
+    ax_assignment.grid(axis="y", linestyle=":", alpha=0.35)
+    ax_assignment.legend(fontsize=7.8, framealpha=0.95, loc="upper right")
+
+    bottom = np.zeros(len(ordered))
+    for key in BUILDING_SEMANTIC_ORDER:
+        values = ordered[f"{key}_count"].to_numpy()
+        ax_semantics.bar(
+            x,
+            values,
+            bottom=bottom,
+            color=BUILDING_SEMANTIC_COLORS[key],
+            edgecolor="white",
+            linewidth=0.6,
+            label=BUILDING_SEMANTIC_LABELS[key],
+        )
+        bottom += values
+    for idx, total in enumerate(ordered["building_count"].to_numpy()):
+        ax_semantics.text(idx, total + 0.15, str(int(total)), ha="center", va="bottom", fontsize=8)
+    for idx, failed in enumerate(ordered["query_failed"].to_numpy()):
+        if failed:
+            ax_semantics.text(idx, 0.3, "query\nfailed", ha="center", va="bottom", fontsize=7.5, color="#C62828")
+    ax_semantics.set_xticks(x)
+    ax_semantics.set_xticklabels(labels, fontsize=8)
+    ax_semantics.set_ylabel("Captured building count")
+    ax_semantics.set_title("Replayed buildings by tag semantics", fontsize=10.5, fontweight="bold")
+    ax_semantics.grid(axis="y", linestyle=":", alpha=0.35)
+    ax_semantics.legend(fontsize=7.8, framealpha=0.95, loc="upper right")
+
+    fig.suptitle("Latest building layer replay across barracks boundary stages", fontsize=13, fontweight="bold", y=0.98)
+    fig.text(0.01, 0.01, "Counts use the latest building-tagged OSM elements, replayed against each stage boundary.", fontsize=8)
+    plt.tight_layout(rect=(0, 0.04, 1, 0.95))
+    plt.savefig(output_path, dpi=200, bbox_inches="tight")
+    plt.close()
+
+
+def collect_building_boundary_audit(all_geometries, all_milestones, output_dir):
+    stage_rows = []
+    building_rows = []
+    replay_stage_rows = []
+    replay_building_rows = []
+    generated_files = []
+    stage_geometries = {}
+
+    reference_polygons = {}
+    for role_name, way_id in [("school", 1484791929), ("compound", 1485767423), ("barracks", BUILDING_AUDIT_WAY_ID)]:
+        latest_row = all_milestones[way_id]["latest"]
+        coords = all_geometries[way_id].get(int(latest_row["version"]), []) if latest_row is not None else []
+        reference_polygons[role_name] = coords
+
+    for milestone_key in MILESTONE_ORDER:
+        milestone_row = all_milestones[BUILDING_AUDIT_WAY_ID].get(milestone_key)
+        if milestone_row is None:
+            continue
+        coords = all_geometries[BUILDING_AUDIT_WAY_ID].get(int(milestone_row["version"]), [])
+        if len(coords) < 3:
+            continue
+        stage_geometries[milestone_key] = coords
+        query_bounds = expand_bounds(coords, padding_ratio=0.02, min_padding_deg=0.0002)
+        query_date_iso = pd.Timestamp(milestone_row["timestamp"]).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
+        print(
+            f"Querying building-tagged OSM elements inside {way_short_label(BUILDING_AUDIT_WAY_ID)} "
+            f"{MILESTONE_LABELS[milestone_key].lower()} ({query_date_iso})..."
+        )
+        query = build_overpass_bbox_query(query_bounds, date_iso=query_date_iso, tag_filter=BUILDING_AUDIT_TAG_FILTER)
+        response = fetch_overpass(query)
+        stage_features = extract_buildings_within_boundary(
+            response,
+            coords,
+            milestone_key,
+            milestone_row,
+            reference_polygons,
+        )
+        building_rows.extend(stage_features)
+        stage_rows.append(
+            summarise_building_stage(
+                milestone_key,
+                milestone_row,
+                stage_features,
+                query_failed=bool(response.get("_fetch_failed")),
+                query_error=response.get("_error", ""),
+            )
+        )
+        time.sleep(2)
+
+    buildings_df = pd.DataFrame(building_rows)
+    if not buildings_df.empty:
+        buildings_df["snapshot_timestamp"] = pd.to_datetime(buildings_df["snapshot_timestamp"], utc=True, errors="coerce")
+
+    stage_df = pd.DataFrame(stage_rows)
+    if not stage_df.empty:
+        stage_df["boundary_timestamp"] = pd.to_datetime(stage_df["boundary_timestamp"], utc=True, errors="coerce")
+        stage_df["stage_order"] = stage_df["stage_key"].map({key: index for index, key in enumerate(MILESTONE_ORDER)})
+        stage_df = stage_df.sort_values("stage_order").drop(columns=["stage_order"]).reset_index(drop=True)
+
+    presence_df = build_building_presence_df(buildings_df)
+    historical_summary = build_building_audit_summary(stage_df, presence_df)
+
+    # Replay the latest building layer against each boundary stage to show boundary-only capture risk.
+    replay_summary = {"stages": [], "unique_building_elements": 0, "findings": [], "method": {}}
+    replay_df = pd.DataFrame()
+    replay_presence_df = pd.DataFrame()
+    latest_boundary_row = all_milestones[BUILDING_AUDIT_WAY_ID]["latest"]
+    all_stage_coords = []
+    for coords in stage_geometries.values():
+        all_stage_coords.extend(coords)
+    for coords in reference_polygons.values():
+        all_stage_coords.extend(coords)
+    if latest_boundary_row is not None and all_stage_coords:
+        replay_bounds = expand_bounds(all_stage_coords, padding_ratio=0.05, min_padding_deg=0.0003)
+        replay_date_iso = pd.Timestamp(latest_boundary_row["timestamp"]).tz_convert("UTC").strftime("%Y-%m-%dT%H:%M:%SZ")
+        print(f"Querying latest building layer for boundary replay ({replay_date_iso})...")
+        replay_response = fetch_overpass(
+            build_overpass_bbox_query(replay_bounds, date_iso=replay_date_iso, tag_filter=BUILDING_AUDIT_TAG_FILTER)
+        )
+        for milestone_key in MILESTONE_ORDER:
+            milestone_row = all_milestones[BUILDING_AUDIT_WAY_ID].get(milestone_key)
+            coords = stage_geometries.get(milestone_key, [])
+            if milestone_row is None or len(coords) < 3:
+                continue
+            replay_features = extract_buildings_within_boundary(
+                replay_response,
+                coords,
+                milestone_key,
+                milestone_row,
+                reference_polygons,
+            )
+            replay_building_rows.extend(replay_features)
+            replay_stage_rows.append(
+                summarise_building_stage(
+                    milestone_key,
+                    milestone_row,
+                    replay_features,
+                    query_failed=bool(replay_response.get("_fetch_failed")),
+                    query_error=replay_response.get("_error", ""),
+                )
+            )
+
+        replay_df = pd.DataFrame(replay_building_rows)
+        if not replay_df.empty:
+            replay_df["snapshot_timestamp"] = pd.to_datetime(replay_df["snapshot_timestamp"], utc=True, errors="coerce")
+        replay_stage_df = pd.DataFrame(replay_stage_rows)
+        if not replay_stage_df.empty:
+            replay_stage_df["boundary_timestamp"] = pd.to_datetime(replay_stage_df["boundary_timestamp"], utc=True, errors="coerce")
+            replay_stage_df["stage_order"] = replay_stage_df["stage_key"].map({key: index for index, key in enumerate(MILESTONE_ORDER)})
+            replay_stage_df = replay_stage_df.sort_values("stage_order").drop(columns=["stage_order"]).reset_index(drop=True)
+        replay_presence_df = build_building_presence_df(replay_df)
+        replay_summary = build_building_replay_summary(replay_stage_df, replay_presence_df)
+    else:
+        replay_stage_df = pd.DataFrame()
+
+    summary = {
+        "site_way_id": BUILDING_AUDIT_WAY_ID,
+        "site_label": way_label(BUILDING_AUDIT_WAY_ID),
+        "method": historical_summary.get("method", {}),
+        "stages": historical_summary.get("stages", []),
+        "unique_building_elements": historical_summary.get("unique_building_elements", 0),
+        "findings": replay_summary.get("findings", []) + historical_summary.get("findings", [])[:2],
+        "historical_findings": historical_summary.get("findings", []),
+        "historical_snapshot_stages": historical_summary.get("stages", []),
+        "historical_unique_building_elements": historical_summary.get("unique_building_elements", 0),
+        "replay_method": replay_summary.get("method", {}),
+        "replay_findings": replay_summary.get("findings", []),
+        "replay_stages": replay_summary.get("stages", []),
+        "replay_unique_building_elements": replay_summary.get("unique_building_elements", 0),
+    }
+
+    by_stage_csv = output_dir / "site_boundary_buildings_by_stage.csv"
+    buildings_df.to_csv(by_stage_csv, index=False)
+    generated_files.append(by_stage_csv)
+
+    stage_summary_csv = output_dir / "site_boundary_building_stage_summary.csv"
+    stage_df.to_csv(stage_summary_csv, index=False)
+    generated_files.append(stage_summary_csv)
+
+    presence_csv = output_dir / "site_boundary_building_presence.csv"
+    presence_df.to_csv(presence_csv, index=False)
+    generated_files.append(presence_csv)
+
+    stage_map_path = output_dir / "site_boundary_building_stages.png"
+    plot_building_stage_maps(replay_stage_df, replay_df, stage_geometries, reference_polygons, stage_map_path)
+    generated_files.append(stage_map_path)
+
+    stage_counts_path = output_dir / "site_boundary_building_counts.png"
+    plot_building_stage_counts(replay_stage_df, stage_counts_path)
+    generated_files.append(stage_counts_path)
+
+    replay_by_stage_csv = output_dir / "site_boundary_building_replay_by_stage.csv"
+    replay_df.to_csv(replay_by_stage_csv, index=False)
+    generated_files.append(replay_by_stage_csv)
+
+    replay_stage_summary_csv = output_dir / "site_boundary_building_replay_stage_summary.csv"
+    replay_stage_df.to_csv(replay_stage_summary_csv, index=False)
+    generated_files.append(replay_stage_summary_csv)
+
+    replay_presence_csv = output_dir / "site_boundary_building_replay_presence.csv"
+    replay_presence_df.to_csv(replay_presence_csv, index=False)
+    generated_files.append(replay_presence_csv)
+
+    summary_path = output_dir / "site_boundary_buildings_summary.json"
+    summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    generated_files.append(summary_path)
+
+    return {
+        "stage_df": stage_df,
+        "buildings_df": buildings_df,
+        "presence_df": presence_df,
+        "replay_stage_df": replay_stage_df,
+        "replay_df": replay_df,
+        "replay_presence_df": replay_presence_df,
+        "summary": summary,
+        "generated_files": generated_files,
+    }
+
+
 def build_way_narrative(summary, strike_timestamp):
     sentences = [
         f"{summary['way_label']} has {summary['versions']} recorded versions spanning {format_timestamp(summary['first_timestamp'])} to {format_timestamp(summary['latest_timestamp'])}.",
@@ -2092,7 +2956,7 @@ def build_way_narrative(summary, strike_timestamp):
     return " ".join(sentences)
 
 
-def generate_key_findings(summary_by_way, conflation, strike_timestamp):
+def generate_key_findings(summary_by_way, conflation, strike_timestamp, building_audit_summary=None):
     school = summary_by_way[1484791929]
     compound = summary_by_way[1485767423]
     barracks = summary_by_way[942760673]
@@ -2118,6 +2982,9 @@ def generate_key_findings(summary_by_way, conflation, strike_timestamp):
     school_compound_shared = conflation.get("shared_nodes", {}).get("school_compound", 0)
     if school_compound_shared > 0:
         findings.append(f"The school and compound polygons share {school_compound_shared} boundary node(s), meaning they were explicitly drawn as adjacent with touching edges in the post-strike OSM record.")
+
+    if building_audit_summary is not None:
+        findings.extend(building_audit_summary.get("findings", [])[:3])
 
     findings.append(f"Overall OSM conflation-risk rating from these indicators: {conflation['overall_rating']}.")
     findings.append("Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026.")
@@ -2160,7 +3027,7 @@ def json_ready(value):
     return value
 
 
-def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files, local_context_summary=None):
+def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files, local_context_summary=None, building_audit_summary=None):
     ways_rows = []
     milestone_rows = []
     for _, row in summary_df.sort_values("way_id").iterrows():
@@ -2204,7 +3071,15 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
         f"Military base first post-strike state: {format_timestamp(compound['first_post_strike_timestamp'])}."
     )
 
-    important_outputs = sorted(repo_relative(path, root_dir) for path in generated_files if path.suffix.lower() in {".csv", ".json", ".txt", ".png", ".gif", ".md"})
+    persisted_outputs = list(generated_files)
+    animation_path = output_dir / "way_history_animation.gif"
+    if animation_path.exists():
+        persisted_outputs.append(animation_path)
+    important_outputs = sorted(
+        repo_relative(path, root_dir)
+        for path in {Path(p) for p in persisted_outputs}
+        if path.suffix.lower() in {".csv", ".json", ".txt", ".png", ".gif", ".md"}
+    )
     lines = [
         f"# {PROJECT_TITLE}",
         "",
@@ -2301,6 +3176,85 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
         ]
     )
 
+    if building_audit_summary is not None:
+        building_stage_rows = []
+        for row in building_audit_summary.get("historical_snapshot_stages", building_audit_summary.get("stages", [])):
+            building_stage_rows.append(
+                {
+                    "Stage": row["stage_label"],
+                    "Boundary": f"v{int(row['boundary_version'])} ({format_timestamp(row['boundary_timestamp'])})",
+                    "Snapshot": "unavailable" if row.get("query_failed") else "ok",
+                    "Buildings returned": "n/a" if row.get("query_failed") else int(row["building_count"]),
+                    "Later school polygon": "n/a" if row.get("query_failed") else int(row["later_school_polygon_count"]),
+                    "Later compound polygon": "n/a" if row.get("query_failed") else int(row["later_compound_polygon_count"]),
+                    "Barracks-only": "n/a" if row.get("query_failed") else int(row["latest_barracks_only_count"]),
+                    "Outside latest": "n/a" if row.get("query_failed") else int(row["outside_latest_barracks_count"]),
+                }
+            )
+        replay_stage_rows = []
+        for row in building_audit_summary.get("replay_stages", []):
+            replay_stage_rows.append(
+                {
+                    "Stage": row["stage_label"],
+                    "Boundary": f"v{int(row['boundary_version'])} ({format_timestamp(row['boundary_timestamp'])})",
+                    "Buildings captured": "n/a" if row.get("query_failed") else int(row["building_count"]),
+                    "Later school polygon": "n/a" if row.get("query_failed") else int(row["later_school_polygon_count"]),
+                    "Later compound polygon": "n/a" if row.get("query_failed") else int(row["later_compound_polygon_count"]),
+                    "Barracks-only": "n/a" if row.get("query_failed") else int(row["latest_barracks_only_count"]),
+                    "Outside latest": "n/a" if row.get("query_failed") else int(row["outside_latest_barracks_count"]),
+                }
+            )
+
+        lines.extend(
+            [
+                "## Boundary Building Audit",
+                "",
+                "This section uses two related checks. First, it runs the historical building query literally at each barracks "
+                "milestone timestamp. Second, it replays the latest building-tagged layer against each historical barracks boundary "
+                "as a proof-of-concept for how a boundary-only workflow could have swept later-clarified buildings into the site list.",
+                "",
+            ]
+        )
+        for finding in building_audit_summary.get("findings", []):
+            lines.append(f"- {finding}")
+        if building_stage_rows:
+            lines.extend(
+                [
+                    "",
+                    "### Historical snapshot query",
+                    "",
+                    markdown_table(pd.DataFrame(building_stage_rows)),
+                    "",
+                ]
+            )
+        for finding in building_audit_summary.get("replay_findings", []):
+            lines.append(f"- {finding}")
+        if replay_stage_rows:
+            lines.extend(
+                [
+                    "",
+                    "### Latest-building replay against each boundary stage",
+                    "",
+                    markdown_table(pd.DataFrame(replay_stage_rows)),
+                    "",
+                ]
+            )
+        lines.extend(
+            [
+                f"![Boundary building stages]({repo_relative(output_dir / 'site_boundary_building_stages.png', root_dir)})",
+                "",
+                "Each panel replays the latest building-tagged layer against the barracks boundary at that milestone. Points are "
+                "coloured by where those building centers sit relative to the later school, compound, and latest barracks polygons.",
+                "",
+                f"![Boundary building counts]({repo_relative(output_dir / 'site_boundary_building_counts.png', root_dir)})",
+                "",
+                "The stacked counts quantify how the boundary revision changes which later-known buildings would be swept into the "
+                "site list, and whether those captured buildings are generic `building=*` features or explicitly school- / "
+                "military-related tags.",
+                "",
+            ]
+        )
+
     # Local context section (if available)
     if local_context_summary is not None:
         lc = local_context_summary
@@ -2388,6 +3342,8 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
             "",
             "- Way history is fetched from the OpenStreetMap API for each configured way ID.",
             "- Geometry is reconstructed from node history by selecting the latest coordinate-bearing node version at or before each way version timestamp where possible.",
+            "- The boundary building audit uses OSM element centers for historical snapshot filtering; it does not reconstruct full historical building footprints.",
+            "- Overpass mirror freshness can vary for broader current-state context queries, so local-context totals may differ across reruns.",
             "- Rows that required fallback geometry or had missing node coordinates are flagged in the CSV outputs.",
             "- This repository remains framed as post-incident mapping-history review for audit and explanation, not operational analysis.",
             "",
@@ -2414,7 +3370,7 @@ def generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_
     return readme_path
 
 
-def build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_findings, conflation, generated_files, root_dir, local_context_summary=None):
+def build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_findings, conflation, generated_files, root_dir, local_context_summary=None, building_audit_summary=None):
     ways = {}
     for way_id, summary in summary_by_way.items():
         milestones = {}
@@ -2439,10 +3395,12 @@ def build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_fin
     }
     if local_context_summary is not None:
         result["local_context"] = local_context_summary
+    if building_audit_summary is not None:
+        result["boundary_building_audit"] = building_audit_summary
     return result
 
 
-def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns=None, local_context_summary=None):
+def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns=None, local_context_summary=None, building_audit_summary=None):
     lines = [
         PROJECT_TITLE,
         "=" * 100,
@@ -2502,6 +3460,60 @@ def write_results_txt(output_path, strike_timestamp, summary_df, milestone_df, c
             lines.append(f"  [RISK] Pre-strike OSM record DID contain {pre_civ} civilian-sensitive feature(s).")
         else:
             lines.append(f"  [RISK] Pre-strike OSM record contained ZERO civilian-sensitive features.")
+
+    if building_audit_summary is not None:
+        lines.extend(["", "BOUNDARY BUILDING AUDIT", "-" * 100])
+        lines.append(f"- Site way: {building_audit_summary['site_label']} ({building_audit_summary['site_way_id']})")
+        lines.append(
+            f"- Inclusion rule: {building_audit_summary['method']['inclusion_rule']}"
+        )
+        lines.append(
+            f"- Later assignment rule: {building_audit_summary['method']['later_assignment_rule']}"
+        )
+        lines.append(
+            f"- Unique building elements returned across all stages: {building_audit_summary.get('unique_building_elements', 0)}"
+        )
+        if building_audit_summary.get("replay_unique_building_elements") is not None:
+            lines.append(
+                f"- Unique building elements in latest-building replay: {building_audit_summary.get('replay_unique_building_elements', 0)}"
+            )
+        for finding in building_audit_summary.get("findings", []):
+            lines.append(f"- {finding}")
+        if building_audit_summary.get("historical_snapshot_stages", building_audit_summary.get("stages")):
+            lines.append("")
+            lines.append("  Historical stage summary:")
+            for row in building_audit_summary.get("historical_snapshot_stages", building_audit_summary.get("stages", [])):
+                if row.get("query_failed"):
+                    lines.append(f"    {row['stage_label']}: snapshot unavailable ({compact_text(row.get('query_error', ''), 90)})")
+                else:
+                    lines.append(
+                        "    "
+                        f"{row['stage_label']}: {int(row['building_count'])} building(s), "
+                        f"{int(row['later_school_polygon_count'])} later school, "
+                        f"{int(row['later_compound_polygon_count'])} later compound, "
+                        f"{int(row['latest_barracks_only_count'])} barracks-only, "
+                        f"{int(row['outside_latest_barracks_count'])} outside latest barracks"
+                    )
+        if building_audit_summary.get("replay_findings"):
+            lines.append("")
+            lines.append("  Latest-building replay findings:")
+            for finding in building_audit_summary.get("replay_findings", []):
+                lines.append(f"    - {finding}")
+        if building_audit_summary.get("replay_stages"):
+            lines.append("")
+            lines.append("  Replay stage summary:")
+            for row in building_audit_summary["replay_stages"]:
+                if row.get("query_failed"):
+                    lines.append(f"    {row['stage_label']}: replay unavailable ({compact_text(row.get('query_error', ''), 90)})")
+                else:
+                    lines.append(
+                        "    "
+                        f"{row['stage_label']}: {int(row['building_count'])} captured building(s), "
+                        f"{int(row['later_school_polygon_count'])} later school, "
+                        f"{int(row['later_compound_polygon_count'])} later compound, "
+                        f"{int(row['latest_barracks_only_count'])} barracks-only, "
+                        f"{int(row['outside_latest_barracks_count'])} outside latest barracks"
+                    )
 
     # Changeset patterns
     if changeset_patterns:
@@ -2613,7 +3625,11 @@ def run():
     plot_conflation_risk(conflation, conflation_plot)
     generated_files.append(conflation_plot)
 
-    key_findings = generate_key_findings(summary_by_way, conflation, strike_timestamp)
+    print(f"\n=== BOUNDARY BUILDING AUDIT ===")
+    building_audit = collect_building_boundary_audit(all_geometries, all_milestones, output_dir)
+    generated_files.extend(building_audit["generated_files"])
+
+    key_findings = generate_key_findings(summary_by_way, conflation, strike_timestamp, building_audit["summary"])
 
     # --- Local context collection ---
     local_context_summary = None
@@ -2711,15 +3727,15 @@ def run():
         print("Warning: could not compute centroid for local context collection.")
 
     results_txt = output_dir / "results.txt"
-    write_results_txt(results_txt, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns, local_context_summary)
+    write_results_txt(results_txt, strike_timestamp, summary_df, milestone_df, combined_df, key_findings, summary_by_way, conflation, changeset_patterns, local_context_summary, building_audit["summary"])
     generated_files.append(results_txt)
 
-    readme_path = generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files, local_context_summary)
+    readme_path = generate_readme(root_dir, output_dir, strike_timestamp, summary_df, summary_by_way, key_findings, conflation, generated_files, local_context_summary, building_audit["summary"])
     generated_files.append(readme_path)
 
     summary_json = output_dir / "summary.json"
     generated_files.append(summary_json)
-    summary_json.write_text(json.dumps(build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_findings, conflation, generated_files, root_dir, local_context_summary), ensure_ascii=False, indent=2), encoding="utf-8")
+    summary_json.write_text(json.dumps(build_summary_json(strike_timestamp, summary_by_way, all_milestones, key_findings, conflation, generated_files, root_dir, local_context_summary, building_audit["summary"]), ensure_ascii=False, indent=2), encoding="utf-8")
 
     print("\n=== KEY FINDINGS ===")
     for finding in key_findings:

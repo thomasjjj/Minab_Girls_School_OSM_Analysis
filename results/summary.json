@@ -1,7 +1,7 @@
 {
   "project_title": "OpenStreetMap History Audit: Shajareh Tayyebeh Girls' School and Adjacent Military Mapping in Minab, Iran",
   "strike_date": "2026-02-28T00:00:00+00:00",
-  "generated_at": "2026-03-11T13:11:27.756038+00:00",
+  "generated_at": "2026-03-19T14:24:37.489965+00:00",
   "ways": {
     "1485767423": {
       "metadata": {
@@ -216,6 +216,9 @@
     "The smaller suspected compound polygon also appears only after the strike, first at 2026-03-05 18:06:31 UTC.",
     "The broader barracks-area way predates the strike and remains the clearest pre-strike military-tagged perimeter in this OSM record.",
     "The school and compound polygons share 5 boundary node(s), meaning they were explicitly drawn as adjacent with touching edges in the post-strike OSM record.",
+    "Using the latest building layer as a fixed reference, the pre-strike barracks boundary would sweep 34 building-tagged OSM element(s) into the site list.",
+    "That replayed pre-strike list would include 3 building(s) in the later school polygon, 18 in the later compound polygon, and 13 that fall outside the latest barracks boundary.",
+    "Once the barracks boundary is revised to its first post-strike shape, the replayed building count changes from 34 to 19, showing how the boundary update alone changes the list of buildings captured by a site query.",
     "Overall OSM conflation-risk rating from these indicators: High.",
     "Post-strike edits materially expand the school and compound record, which suggests the OSM map became more explicit after 28 February 2026."
   ],
@@ -286,6 +289,15 @@
     "results/nearby_features_summary.json",
     "results/perimeter_comparison.png",
     "results/results.txt",
+    "results/site_boundary_building_counts.png",
+    "results/site_boundary_building_presence.csv",
+    "results/site_boundary_building_replay_by_stage.csv",
+    "results/site_boundary_building_replay_presence.csv",
+    "results/site_boundary_building_replay_stage_summary.csv",
+    "results/site_boundary_building_stage_summary.csv",
+    "results/site_boundary_building_stages.png",
+    "results/site_boundary_buildings_by_stage.csv",
+    "results/site_boundary_buildings_summary.json",
     "results/state_maps/first_post_strike_combined.png",
     "results/state_maps/first_post_strike_way_1484791929.png",
     "results/state_maps/first_post_strike_way_1485767423.png",
@@ -495,71 +507,36 @@
       ]
     },
     "current": {
-      "total_features": 1021,
+      "total_features": 413,
       "by_category": {
-        "civilian_sensitive": 2,
-        "civilian_general": 12,
-        "military_security": 14,
+        "civilian_sensitive": 0,
+        "civilian_general": 9,
+        "military_security": 1,
         "government_institutional": 4,
-        "infrastructure_access": 142,
-        "unknown": 847
+        "infrastructure_access": 73,
+        "unknown": 326
       },
       "by_radius": {
-        "50": 26,
-        "100": 127,
-        "250": 647,
-        "500": 993
+        "50": 1,
+        "100": 7,
+        "250": 81,
+        "500": 385
       },
       "named_features": [
         {
-          "name": "سید الشهدا-عاصف",
-          "category": "military_security",
-          "distance_m": 65.0
-        },
-        {
-          "name": "Shajareh Tayyebeh girls' elementary school",
-          "category": "civilian_sensitive",
-          "distance_m": 88.0
-        },
-        {
-          "name": "رسالت نهم",
-          "category": "infrastructure_access",
-          "distance_m": 89.2
-        },
-        {
           "name": "پادگان سید الشهدا-عاصف",
           "category": "military_security",
-          "distance_m": 136.2
-        },
-        {
-          "name": "داروخانه دکتر محمد قادری",
-          "category": "civilian_general",
-          "distance_m": 145.5
+          "distance_m": 77.2
         },
         {
           "name": "رسالت نهم",
           "category": "infrastructure_access",
-          "distance_m": 168.0
+          "distance_m": 105.0
         },
         {
-          "name": "کافه فست فود سان ست",
+          "name": "آهن آلات  محمودی",
           "category": "civilian_general",
-          "distance_m": 186.6
-        },
-        {
-          "name": "مجتمع فرهنگی سیدالشهدا سپاه",
-          "category": "unknown",
-          "distance_m": 195.3
-        },
-        {
-          "name": "مجتمع فرهنگی سیدالشهدا سپاه",
-          "category": "civilian_general",
-          "distance_m": 207.9
-        },
-        {
-          "name": "کلینیک کشاورزی مروارید",
-          "category": "civilian_general",
-          "distance_m": 213.9
+          "distance_m": 219.4
         },
         {
           "name": "بلوار رسالت",
@@ -567,24 +544,24 @@
           "distance_m": 235.1
         },
         {
-          "name": "آهن آلات و مصالح ساختمانی محمودی",
-          "category": "civilian_general",
-          "distance_m": 238.8
-        },
-        {
           "name": "بلوار رسالت",
           "category": "infrastructure_access",
           "distance_m": 264.1
         },
         {
+          "name": "کلینیک کشاورزی مروارید",
+          "category": "civilian_general",
+          "distance_m": 268.6
+        },
+        {
           "name": "رسالت دهم",
           "category": "infrastructure_access",
-          "distance_m": 270.3
+          "distance_m": 275.3
         },
         {
           "name": "اداره آب و فاضلاب",
           "category": "government_institutional",
-          "distance_m": 291.5
+          "distance_m": 318.3
         },
         {
           "name": "اداره جهاد کشاورزی میناب",
@@ -594,17 +571,12 @@
         {
           "name": "اداره شیلات میناب",
           "category": "government_institutional",
-          "distance_m": 357.3
+          "distance_m": 358.3
         },
         {
           "name": "رسالت هشتم",
           "category": "infrastructure_access",
           "distance_m": 367.7
-        },
-        {
-          "name": "آهن آلات شیخ آبادی",
-          "category": "civilian_general",
-          "distance_m": 369.4
         },
         {
           "name": "مرکز تحقیقات کشاورزی شهرستان میناب",
@@ -614,12 +586,17 @@
         {
           "name": "رسالت یازدهم",
           "category": "infrastructure_access",
-          "distance_m": 377.7
+          "distance_m": 379.3
+        },
+        {
+          "name": "آهن آلات شیخ آبادی",
+          "category": "civilian_general",
+          "distance_m": 380.1
         },
         {
           "name": "رسالت دوازدهم",
           "category": "infrastructure_access",
-          "distance_m": 435.8
+          "distance_m": 434.1
         },
         {
           "name": "آهن آلات زارع",
@@ -647,11 +624,6 @@
           "distance_m": 491.5
         },
         {
-          "name": "کوچه ۶۴",
-          "category": "infrastructure_access",
-          "distance_m": 496.5
-        },
-        {
           "name": "تعمیرگاه جنوب",
           "category": "civilian_general",
           "distance_m": 498.3
@@ -659,14 +631,331 @@
         {
           "name": "پارک شهر",
           "category": "unknown",
-          "distance_m": 502.1
+          "distance_m": 499.2
+        },
+        {
+          "name": "کوچه ۶۴",
+          "category": "infrastructure_access",
+          "distance_m": 603.4
+        },
+        {
+          "name": "پریتقی-پزیتکی",
+          "category": "unknown",
+          "distance_m": 627.9
+        },
+        {
+          "name": "کریم آباد",
+          "category": "unknown",
+          "distance_m": 929.7
+        },
+        {
+          "name": "بلوار المهدی",
+          "category": "infrastructure_access",
+          "distance_m": 1058.2
+        },
+        {
+          "name": "بلوار المهدی",
+          "category": "infrastructure_access",
+          "distance_m": 1073.9
+        },
+        {
+          "name": "میناب",
+          "category": "civilian_general",
+          "distance_m": 2637.5
+        },
+        {
+          "name": "جاده ۹۱",
+          "category": "unknown",
+          "distance_m": 367658.2
         }
       ]
     },
     "comparison": {
-      "added": 627,
-      "removed": 19,
-      "unchanged": 394
+      "added": 0,
+      "removed": 0,
+      "unchanged": 413
     }
+  },
+  "boundary_building_audit": {
+    "site_way_id": 942760673,
+    "site_label": "Sayyid al-Shuhada-Asif barracks area",
+    "method": {
+      "snapshot_source": "Overpass historical snapshots taken at each barracks milestone timestamp",
+      "inclusion_rule": "building-tagged OSM elements whose center lies inside the barracks boundary polygon at that stage",
+      "later_assignment_rule": "each returned building center is then classified against the latest school, compound, and barracks polygons to show later clarification"
+    },
+    "stages": [
+      {
+        "stage_key": "first_version",
+        "stage_label": "First mapped",
+        "boundary_version": 1,
+        "boundary_timestamp": "2021-05-14T02:59:17+00:00",
+        "boundary_timestamp_iso": "2021-05-14T02:59:17+00:00",
+        "building_count": 0,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 0,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 0,
+        "school_related_count": 0,
+        "military_related_count": 0,
+        "other_tagged_building_count": 0
+      },
+      {
+        "stage_key": "last_pre_strike",
+        "stage_label": "Last pre-strike",
+        "boundary_version": 2,
+        "boundary_timestamp": "2021-05-19T02:17:22+00:00",
+        "boundary_timestamp_iso": "2021-05-19T02:17:22+00:00",
+        "building_count": 0,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 0,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 0,
+        "school_related_count": 0,
+        "military_related_count": 0,
+        "other_tagged_building_count": 0
+      },
+      {
+        "stage_key": "first_post_strike",
+        "stage_label": "First post-strike",
+        "boundary_version": 3,
+        "boundary_timestamp": "2026-03-03T03:03:10+00:00",
+        "boundary_timestamp_iso": "2026-03-03T03:03:10+00:00",
+        "building_count": 0,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 0,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 0,
+        "school_related_count": 0,
+        "military_related_count": 0,
+        "other_tagged_building_count": 0
+      },
+      {
+        "stage_key": "latest",
+        "stage_label": "Latest",
+        "boundary_version": 13,
+        "boundary_timestamp": "2026-03-07T22:56:51+00:00",
+        "boundary_timestamp_iso": "2026-03-07T22:56:51+00:00",
+        "building_count": 19,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 19,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 7,
+        "school_related_count": 0,
+        "military_related_count": 12,
+        "other_tagged_building_count": 0
+      }
+    ],
+    "unique_building_elements": 19,
+    "findings": [
+      "Using the latest building layer as a fixed reference, the pre-strike barracks boundary would sweep 34 building-tagged OSM element(s) into the site list.",
+      "That replayed pre-strike list would include 3 building(s) in the later school polygon, 18 in the later compound polygon, and 13 that fall outside the latest barracks boundary.",
+      "Once the barracks boundary is revised to its first post-strike shape, the replayed building count changes from 34 to 19, showing how the boundary update alone changes the list of buildings captured by a site query.",
+      "By the latest boundary stage, the replayed building list settles at 19 building(s), compared with 34 under the broader pre-strike boundary.",
+      "A barracks-boundary building query at last pre-strike would have returned 0 building-tagged OSM element(s).",
+      "The number of buildings returned by the barracks boundary changes from 0 at the pre-strike stage to 19 at the latest stage, showing that the site boundary revision materially changes which buildings are swept into the site list."
+    ],
+    "historical_findings": [
+      "A barracks-boundary building query at last pre-strike would have returned 0 building-tagged OSM element(s).",
+      "The number of buildings returned by the barracks boundary changes from 0 at the pre-strike stage to 19 at the latest stage, showing that the site boundary revision materially changes which buildings are swept into the site list.",
+      "Once the post-strike barracks boundary is introduced, the returned building set no longer includes any building centers that later fall inside the separately mapped school or compound polygons."
+    ],
+    "historical_snapshot_stages": [
+      {
+        "stage_key": "first_version",
+        "stage_label": "First mapped",
+        "boundary_version": 1,
+        "boundary_timestamp": "2021-05-14T02:59:17+00:00",
+        "boundary_timestamp_iso": "2021-05-14T02:59:17+00:00",
+        "building_count": 0,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 0,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 0,
+        "school_related_count": 0,
+        "military_related_count": 0,
+        "other_tagged_building_count": 0
+      },
+      {
+        "stage_key": "last_pre_strike",
+        "stage_label": "Last pre-strike",
+        "boundary_version": 2,
+        "boundary_timestamp": "2021-05-19T02:17:22+00:00",
+        "boundary_timestamp_iso": "2021-05-19T02:17:22+00:00",
+        "building_count": 0,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 0,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 0,
+        "school_related_count": 0,
+        "military_related_count": 0,
+        "other_tagged_building_count": 0
+      },
+      {
+        "stage_key": "first_post_strike",
+        "stage_label": "First post-strike",
+        "boundary_version": 3,
+        "boundary_timestamp": "2026-03-03T03:03:10+00:00",
+        "boundary_timestamp_iso": "2026-03-03T03:03:10+00:00",
+        "building_count": 0,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 0,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 0,
+        "school_related_count": 0,
+        "military_related_count": 0,
+        "other_tagged_building_count": 0
+      },
+      {
+        "stage_key": "latest",
+        "stage_label": "Latest",
+        "boundary_version": 13,
+        "boundary_timestamp": "2026-03-07T22:56:51+00:00",
+        "boundary_timestamp_iso": "2026-03-07T22:56:51+00:00",
+        "building_count": 19,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 19,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 7,
+        "school_related_count": 0,
+        "military_related_count": 12,
+        "other_tagged_building_count": 0
+      }
+    ],
+    "historical_unique_building_elements": 19,
+    "replay_method": {
+      "snapshot_source": "Latest building-tagged OSM layer replayed against each historical barracks boundary",
+      "inclusion_rule": "latest building-tagged OSM elements whose centers would fall inside each barracks boundary stage",
+      "purpose": "proof-of-concept showing how boundary-only listing could sweep later-clarified buildings into the site list"
+    },
+    "replay_findings": [
+      "Using the latest building layer as a fixed reference, the pre-strike barracks boundary would sweep 34 building-tagged OSM element(s) into the site list.",
+      "That replayed pre-strike list would include 3 building(s) in the later school polygon, 18 in the later compound polygon, and 13 that fall outside the latest barracks boundary.",
+      "Once the barracks boundary is revised to its first post-strike shape, the replayed building count changes from 34 to 19, showing how the boundary update alone changes the list of buildings captured by a site query.",
+      "By the latest boundary stage, the replayed building list settles at 19 building(s), compared with 34 under the broader pre-strike boundary."
+    ],
+    "replay_stages": [
+      {
+        "stage_key": "first_version",
+        "stage_label": "First mapped",
+        "boundary_version": 1,
+        "boundary_timestamp": "2021-05-14T02:59:17+00:00",
+        "boundary_timestamp_iso": "2021-05-14T02:59:17+00:00",
+        "building_count": 34,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 34,
+        "later_school_polygon_count": 3,
+        "later_compound_polygon_count": 18,
+        "latest_barracks_only_count": 0,
+        "outside_latest_barracks_count": 13,
+        "generic_building_count": 33,
+        "school_related_count": 1,
+        "military_related_count": 0,
+        "other_tagged_building_count": 0
+      },
+      {
+        "stage_key": "last_pre_strike",
+        "stage_label": "Last pre-strike",
+        "boundary_version": 2,
+        "boundary_timestamp": "2021-05-19T02:17:22+00:00",
+        "boundary_timestamp_iso": "2021-05-19T02:17:22+00:00",
+        "building_count": 34,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 34,
+        "later_school_polygon_count": 3,
+        "later_compound_polygon_count": 18,
+        "latest_barracks_only_count": 0,
+        "outside_latest_barracks_count": 13,
+        "generic_building_count": 33,
+        "school_related_count": 1,
+        "military_related_count": 0,
+        "other_tagged_building_count": 0
+      },
+      {
+        "stage_key": "first_post_strike",
+        "stage_label": "First post-strike",
+        "boundary_version": 3,
+        "boundary_timestamp": "2026-03-03T03:03:10+00:00",
+        "boundary_timestamp_iso": "2026-03-03T03:03:10+00:00",
+        "building_count": 19,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 19,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 7,
+        "school_related_count": 0,
+        "military_related_count": 12,
+        "other_tagged_building_count": 0
+      },
+      {
+        "stage_key": "latest",
+        "stage_label": "Latest",
+        "boundary_version": 13,
+        "boundary_timestamp": "2026-03-07T22:56:51+00:00",
+        "boundary_timestamp_iso": "2026-03-07T22:56:51+00:00",
+        "building_count": 19,
+        "named_building_count": 0,
+        "query_failed": false,
+        "query_error": "",
+        "reassignment_risk_count": 0,
+        "later_school_polygon_count": 0,
+        "later_compound_polygon_count": 0,
+        "latest_barracks_only_count": 19,
+        "outside_latest_barracks_count": 0,
+        "generic_building_count": 7,
+        "school_related_count": 0,
+        "military_related_count": 12,
+        "other_tagged_building_count": 0
+      }
+    ],
+    "replay_unique_building_elements": 53
   }
 }

@@ -1,0 +1,5 @@
+stage_key,stage_label,boundary_version,boundary_timestamp,boundary_timestamp_iso,building_count,named_building_count,query_failed,query_error,reassignment_risk_count,later_school_polygon_count,later_compound_polygon_count,latest_barracks_only_count,outside_latest_barracks_count,generic_building_count,school_related_count,military_related_count,other_tagged_building_count
+first_version,First mapped,1,2021-05-14 02:59:17+00:00,2021-05-14T02:59:17+00:00,0,0,False,,0,0,0,0,0,0,0,0,0
+last_pre_strike,Last pre-strike,2,2021-05-19 02:17:22+00:00,2021-05-19T02:17:22+00:00,0,0,False,,0,0,0,0,0,0,0,0,0
+first_post_strike,First post-strike,3,2026-03-03 03:03:10+00:00,2026-03-03T03:03:10+00:00,0,0,False,,0,0,0,0,0,0,0,0,0
+latest,Latest,13,2026-03-07 22:56:51+00:00,2026-03-07T22:56:51+00:00,19,0,False,,0,0,0,19,0,7,0,12,0
